@@ -13,6 +13,7 @@ import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from flask import Flask, jsonify, request, send_from_directory
+from flask_cors import CORS
 from bs4 import BeautifulSoup
 
 from wordmatch import word_to_plate_patterns, plate_to_words, is_english_word, load_dictionary, plate_match_score
@@ -25,6 +26,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__, static_folder='static')
+CORS(app)
 
 # ---------------------------------------------------------------------------
 # Cache — keyed by normalised search term, TTL = 10 minutes

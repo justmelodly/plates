@@ -690,6 +690,8 @@
 </footer>
 
 <script>
+  const API_BASE = 'https://YOUR_RAILWAY_URL_HERE';
+
   /* ---- elements ---- */
   const logoBtn     = document.getElementById('logoBtn');
   const navHome     = document.getElementById('navHome');
@@ -827,7 +829,7 @@
     setLoading(true, `Searching all platforms for "${q}"…`);
     reset(false);
     try {
-      const res  = await fetch(`/api/search?${param}`, { signal: abortCtrl.signal });
+      const res  = await fetch(`${API_BASE}/api/search?${param}`, { signal: abortCtrl.signal });
       const data = await res.json();
       if (!res.ok) { setError(data.error || 'Something went wrong'); return; }
       let results = data.results || [];
@@ -915,7 +917,7 @@
     if (_featuredPollTimer) { clearTimeout(_featuredPollTimer); _featuredPollTimer = null; }
     featuredGrid.innerHTML = '<div class="grid-placeholder"><div class="spinner"></div><span>Finding plates…</span></div>';
     try {
-      const res  = await fetch('/api/featured');
+      const res  = await fetch(`${API_BASE}/api/featured`);
       const data = await res.json();
       const results = data.results || [];
       if (data.loading || !results.length) {
@@ -935,7 +937,7 @@
   async function loadNews() {
     newsLoaded = true;
     try {
-      const res  = await fetch('/api/news');
+      const res  = await fetch(`${API_BASE}/api/news`);
       const data = await res.json();
       const articles = data.articles || [];
       if (!articles.length) {
@@ -980,7 +982,7 @@
   async function loadFriends() {
     friendsLoaded = true;
     try {
-      const res  = await fetch('/api/friends');
+      const res  = await fetch(`${API_BASE}/api/friends`);
       const data = await res.json();
       const d    = data.data || {};
       const social  = d.social  || [];
