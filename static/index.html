@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UK Plate Finder</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f13;
+      --surface: #1a1a24;
+      --border: #2e2e3f;
+      --text: #e8e8f0;
+      --muted: #7a7a99;
+      --accent: #f5c400;
+      --accent-dark: #c49b00;
+      --red: #e05454;
+      --green: #4caf79;
+      --plate-yellow: #f5c400;
+      --plate-black: #1a1a1a;
+      --plate-font: 'Courier New', 'Lucida Console', monospace;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+    }
+
+    #starfield { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+    header, main, footer, #homeView, #newsView, #friendsView { position: relative; z-index: 1; }
+
+    /* ------------------------------------------------------------------ */
+    /* Header + Nav                                                         */
+    /* ------------------------------------------------------------------ */
+    header {
+      background: var(--surface);
+      border-bottom: 2px solid var(--accent);
+      padding: 16px 24px;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    .logo-plate {
+      background: var(--plate-yellow);
+      color: var(--plate-black);
+      font-family: var(--plate-font);
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      padding: 4px 12px;
+      border-radius: 4px;
+      border: 2px solid var(--plate-black);
+      white-space: nowrap;
+      cursor: pointer;
+      transition: transform .15s, box-shadow .15s;
+      background-color: var(--plate-yellow);
+    }
+    .logo-plate:hover { transform: scale(1.04); box-shadow: 0 0 12px rgba(245,196,0,.5); }
+
+    header h1 { font-size: 22px; font-weight: 700; color: var(--text); }
+    header p  { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+    nav {
+      display: flex;
+      gap: 4px;
+    }
+
+    .nav-btn {
+      background: none;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .5px;
+      padding: 7px 18px;
+      transition: color .15s, background .15s, border-color .15s;
+    }
+    .nav-btn:hover { color: var(--text); border-color: var(--border); }
+    .nav-btn.active {
+      background: rgba(245,196,0,.12);
+      border-color: rgba(245,196,0,.4);
+      color: var(--accent);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Shared layout                                                        */
+    /* ------------------------------------------------------------------ */
+    .page-main { max-width: 960px; margin: 0 auto; padding: 40px 24px; }
+
+    .section-heading {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 16px;
+    }
+
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(245,196,0,.3);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .page-loading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 14px;
+      padding: 60px 0;
+      justify-content: center;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* HOME VIEW                                                            */
+    /* ------------------------------------------------------------------ */
+    #homeView { display: block; }
+
+    .hero { text-align: center; padding: 56px 24px 48px; }
+
+    .hero-big-plate {
+      display: inline-block;
+      background: var(--plate-yellow);
+      border: 4px solid var(--plate-black);
+      border-radius: 8px;
+      color: var(--plate-black);
+      font-family: var(--plate-font);
+      font-size: 40px;
+      font-weight: 900;
+      letter-spacing: 6px;
+      padding: 12px 28px;
+      margin-bottom: 28px;
+      position: relative;
+      box-shadow: 0 8px 32px rgba(245,196,0,.25);
+    }
+    .hero-big-plate::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 36px;
+      background: #003399;
+      border-radius: 4px 0 0 4px;
+    }
+    .hero-big-plate::after {
+      content: 'GB';
+      position: absolute;
+      left: 0; top: 50%;
+      transform: translateY(-50%);
+      width: 36px;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      text-align: center;
+      letter-spacing: 0;
+    }
+    .hero-big-plate-text { padding-left: 28px; display: block; }
+
+    .hero h2 { font-size: 30px; font-weight: 800; margin-bottom: 10px; letter-spacing: -.5px; }
+    .hero p { font-size: 16px; color: var(--muted); margin-bottom: 32px; }
+
+    .hero-search {
+      display: flex; gap: 10px; max-width: 520px;
+      margin: 0 auto; flex-wrap: wrap; justify-content: center;
+    }
+    .hero-search-wrap { position: relative; flex: 1; min-width: 220px; }
+    #heroInput {
+      width: 100%;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 20px; font-weight: 700; letter-spacing: 4px;
+      padding: 14px 18px; text-transform: uppercase; outline: none;
+      transition: border-color .2s;
+    }
+    #heroInput::placeholder { color: var(--muted); letter-spacing: 2px; font-weight: 400; }
+    #heroInput:focus { border-color: var(--accent); }
+    .hero-search-btn {
+      background: var(--accent); border: none; border-radius: 8px;
+      color: var(--plate-black); cursor: pointer; font-size: 16px;
+      font-weight: 800; padding: 14px 32px;
+      transition: background .2s, transform .1s; letter-spacing: 1px;
+    }
+    .hero-search-btn:hover { background: var(--accent-dark); }
+
+    .featured-section { padding: 0 24px 60px; max-width: 960px; margin: 0 auto; }
+
+    /* ------------------------------------------------------------------ */
+    /* SEARCH VIEW                                                          */
+    /* ------------------------------------------------------------------ */
+    #searchView { display: none; }
+
+    .search-section { margin-bottom: 32px; }
+
+    .mode-tabs {
+      display: flex; gap: 4px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px; padding: 4px;
+      width: fit-content; margin-bottom: 20px;
+    }
+    .mode-tab {
+      background: none; border: none; border-radius: 5px;
+      color: var(--muted); cursor: pointer;
+      font-size: 12px; font-weight: 800; letter-spacing: 1.5px;
+      padding: 8px 20px; transition: background .15s, color .15s;
+    }
+    .mode-tab.active { background: var(--accent); color: var(--plate-black); }
+    .mode-tab:hover:not(.active) { color: var(--text); }
+
+    .search-section h2 {
+      font-size: 15px; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;
+    }
+
+    .search-form { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .search-input-wrap { position: relative; flex: 1; min-width: 220px; }
+    #searchInput {
+      width: 100%;
+      background: var(--surface); border: 2px solid var(--border);
+      border-radius: 8px; color: var(--text);
+      font-size: 20px; font-weight: 700; letter-spacing: 4px;
+      padding: 14px 48px 14px 18px; text-transform: uppercase; outline: none;
+      transition: border-color .2s;
+    }
+    #searchInput::placeholder { color: var(--muted); letter-spacing: 2px; font-weight: 400; }
+    #searchInput:focus { border-color: var(--accent); }
+
+    .clear-btn {
+      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: var(--muted);
+      cursor: pointer; font-size: 18px; display: none; line-height: 1;
+    }
+    .clear-btn:hover { color: var(--text); }
+
+    .search-btn {
+      background: var(--accent); border: none; border-radius: 8px;
+      color: var(--plate-black); cursor: pointer; font-size: 16px;
+      font-weight: 800; padding: 14px 32px;
+      transition: background .2s, transform .1s; letter-spacing: 1px;
+    }
+    .search-btn:hover { background: var(--accent-dark); }
+    .search-btn:active { transform: scale(.97); }
+    .search-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    .hints { margin-top: 10px; font-size: 12px; color: var(--muted); line-height: 1.7; }
+    .hints strong { color: var(--accent); font-weight: 600; }
+
+    /* Status banners */
+    #statusBar {
+      border-radius: 8px; padding: 14px 18px; margin-bottom: 24px;
+      font-size: 14px; display: none;
+    }
+    #statusBar.loading {
+      background: rgba(245,196,0,.12); border: 1px solid rgba(245,196,0,.3);
+      color: var(--accent); display: flex; align-items: center; gap: 10px;
+    }
+    #statusBar.error {
+      background: rgba(224,84,84,.12); border: 1px solid rgba(224,84,84,.3);
+      color: var(--red); display: block;
+    }
+    #statusBar.info {
+      background: rgba(76,175,121,.12); border: 1px solid rgba(76,175,121,.3);
+      color: var(--green); display: block;
+    }
+
+    #resultsMeta {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px; flex-wrap: wrap; gap: 8px;
+    }
+    #resultsMeta .count { font-size: 14px; color: var(--muted); }
+    #resultsMeta .count strong { color: var(--text); font-size: 18px; }
+
+    #sortSelect {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text); font-size: 13px;
+      padding: 6px 10px; cursor: pointer;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Plate cards (shared)                                                 */
+    /* ------------------------------------------------------------------ */
+    #results, #featuredGrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 20px;
+      display: flex; flex-direction: column; gap: 14px;
+      transition: border-color .2s, transform .15s;
+    }
+    .card:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+    .uk-plate {
+      background: var(--plate-yellow); border: 3px solid var(--plate-black);
+      border-radius: 6px; color: var(--plate-black);
+      font-family: var(--plate-font); font-size: 26px; font-weight: 900;
+      letter-spacing: 4px; text-align: center; padding: 8px 16px;
+      width: 100%; position: relative; user-select: all;
+    }
+    .uk-plate::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+      width: 28px; background: #003399; border-radius: 3px 0 0 3px;
+    }
+    .uk-plate::after {
+      content: 'GB'; position: absolute; left: 0; top: 50%;
+      transform: translateY(-50%); width: 28px; color: #fff;
+      font-size: 9px; font-weight: 700; text-align: center; letter-spacing: 0;
+    }
+    .plate-text-inner { display: block; padding-left: 22px; }
+
+    .card-meta { display: flex; flex-direction: column; gap: 6px; }
+    .price-row { display: flex; align-items: baseline; gap: 8px; }
+    .price { font-size: 26px; font-weight: 800; color: var(--accent); }
+    .price.poa { font-size: 18px; color: var(--muted); }
+    .matches-row { font-size: 12px; color: var(--muted); }
+    .word-badge {
+      display: inline-block;
+      background: rgba(245,196,0,.15); border: 1px solid rgba(245,196,0,.3);
+      color: var(--accent); border-radius: 4px; padding: 1px 6px;
+      font-size: 11px; font-weight: 600; margin: 2px 2px 0 0;
+    }
+    .source-row { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+    .source-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; flex-shrink: 0; }
+    .match-bar-wrap { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--muted); }
+    .match-bar-track { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .match-bar-fill { height: 100%; border-radius: 2px; transition: width .3s ease; }
+
+    .buy-btn {
+      display: block; background: transparent; border: 2px solid var(--accent);
+      border-radius: 7px; color: var(--accent); cursor: pointer;
+      font-size: 14px; font-weight: 700; padding: 10px; text-align: center;
+      text-decoration: none; transition: background .18s, color .18s; letter-spacing: .5px;
+    }
+    .buy-btn:hover { background: var(--accent); color: var(--plate-black); }
+
+    #emptyState { text-align: center; padding: 60px 20px; display: none; }
+    #emptyState .big-plate { font-size: 48px; margin-bottom: 16px; }
+    #emptyState h3 { font-size: 20px; color: var(--text); margin-bottom: 8px; }
+    #emptyState p { font-size: 14px; color: var(--muted); }
+
+    .grid-placeholder {
+      grid-column: 1/-1; text-align: center; padding: 48px;
+      color: var(--muted); font-size: 14px;
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* NEWS VIEW                                                            */
+    /* ------------------------------------------------------------------ */
+    #newsView { display: none; }
+
+    .news-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+
+    .news-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 20px;
+      display: flex; flex-direction: column; gap: 10px;
+      transition: border-color .2s, transform .15s;
+      text-decoration: none; color: inherit;
+    }
+    .news-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+    .news-source {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; font-weight: 700; letter-spacing: .5px;
+      color: var(--accent); text-transform: uppercase;
+    }
+    .news-source-dot { width: 5px; height: 5px; background: var(--accent); border-radius: 50%; }
+
+    .news-title {
+      font-size: 15px; font-weight: 700; line-height: 1.45; color: var(--text);
+    }
+
+    .news-desc {
+      font-size: 13px; color: var(--muted); line-height: 1.6; flex: 1;
+    }
+
+    .news-date { font-size: 11px; color: var(--muted); margin-top: auto; }
+
+    /* ------------------------------------------------------------------ */
+    /* FRIENDS VIEW                                                         */
+    /* ------------------------------------------------------------------ */
+    #friendsView { display: none; }
+
+    .friends-header {
+      text-align: center;
+      padding: 40px 24px 32px;
+    }
+    .friends-header h2 { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+    .friends-header p { font-size: 14px; color: var(--muted); }
+
+    /* Social profile cards */
+    .social-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+
+    .social-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 22px;
+      display: flex; flex-direction: column; gap: 12px;
+      transition: border-color .2s, transform .15s;
+    }
+    .social-card:hover { transform: translateY(-2px); }
+    .social-card.linktree  { border-color: rgba(67,214,125,.4); }
+    .social-card.linktree:hover  { border-color: #43D67D; }
+    .social-card.instagram { border-color: rgba(193,53,132,.4); }
+    .social-card.instagram:hover { border-color: #C13584; }
+    .social-card.tiktok    { border-color: rgba(105,201,208,.4); }
+    .social-card.tiktok:hover    { border-color: #69C9D0; }
+    .social-card.website   { border-color: rgba(245,196,0,.4); }
+    .social-card.website:hover   { border-color: var(--accent); }
+
+    .social-platform-row {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .platform-icon {
+      width: 32px; height: 32px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 900; flex-shrink: 0;
+    }
+    .platform-icon.linktree  { background: #43D67D; color: #fff; }
+    .platform-icon.instagram { background: linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888); color: #fff; }
+    .platform-icon.tiktok    { background: #000; color: #69C9D0; }
+    .platform-icon.website   { background: var(--accent); color: var(--plate-black); }
+
+    .platform-name { font-size: 14px; font-weight: 700; }
+    .platform-handle { font-size: 12px; color: var(--muted); }
+
+    .social-avatar {
+      width: 56px; height: 56px; border-radius: 50%;
+      object-fit: cover; border: 2px solid var(--border);
+      align-self: center;
+    }
+    .social-avatar-placeholder {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: var(--border); display: flex; align-items: center;
+      justify-content: center; font-size: 22px; align-self: center;
+    }
+
+    .social-bio { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+    .social-stats {
+      display: flex; gap: 16px; flex-wrap: wrap;
+    }
+    .stat { display: flex; flex-direction: column; gap: 2px; }
+    .stat-value { font-size: 16px; font-weight: 800; color: var(--text); }
+    .stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+
+    .lt-links { display: flex; flex-direction: column; gap: 6px; margin-top: 2px; }
+    .lt-link {
+      display: block; text-align: center; text-decoration: none;
+      background: rgba(67,214,125,.1); border: 1px solid rgba(67,214,125,.3);
+      border-radius: 6px; color: #43D67D; font-size: 12px; font-weight: 600;
+      padding: 7px 10px; transition: background .15s, border-color .15s;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .lt-link:hover { background: rgba(67,214,125,.25); border-color: #43D67D; }
+
+    .visit-btn {
+      display: block; text-align: center; text-decoration: none;
+      border: 2px solid var(--border); border-radius: 7px;
+      color: var(--text); font-size: 13px; font-weight: 700;
+      padding: 9px; transition: background .15s, border-color .15s, color .15s;
+      letter-spacing: .5px; margin-top: auto;
+    }
+    .social-card.linktree  .visit-btn:hover { background: #43D67D; border-color: #43D67D; color: #000; }
+    .social-card.instagram .visit-btn:hover { background: #C13584; border-color: #C13584; color: #fff; }
+    .social-card.tiktok    .visit-btn:hover { background: #69C9D0; border-color: #69C9D0; color: #000; }
+    .social-card.website   .visit-btn:hover { background: var(--accent); border-color: var(--accent); color: var(--plate-black); }
+
+    /* Website content */
+    .website-section { margin-bottom: 40px; }
+
+    .site-sections {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .site-section-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; overflow: hidden;
+      display: flex; flex-direction: column;
+      transition: border-color .2s, transform .15s;
+    }
+    .site-section-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+    .site-section-img {
+      width: 100%; height: 180px; object-fit: cover;
+      display: block; background: var(--border);
+    }
+
+    .site-section-body {
+      padding: 16px; display: flex; flex-direction: column; gap: 8px; flex: 1;
+    }
+
+    .site-section-title {
+      font-size: 15px; font-weight: 800; color: var(--text);
+      text-transform: uppercase; letter-spacing: .5px;
+    }
+
+    .site-section-text {
+      font-size: 13px; color: var(--muted); line-height: 1.6; flex: 1;
+    }
+
+    .site-section-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+
+    .site-section-link {
+      display: inline-block; text-decoration: none;
+      border: 1px solid var(--accent); border-radius: 5px;
+      color: var(--accent); font-size: 12px; font-weight: 700;
+      padding: 5px 12px; transition: background .15s, color .15s;
+    }
+    .site-section-link:hover { background: var(--accent); color: var(--plate-black); }
+
+    /* ------------------------------------------------------------------ */
+    /* Footer                                                               */
+    /* ------------------------------------------------------------------ */
+    footer {
+      position: relative; z-index: 1; text-align: center;
+      padding: 32px 24px; font-size: 12px; color: var(--muted);
+      border-top: 1px solid var(--border); margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="starfield"></canvas>
+
+<header>
+  <div class="header-top">
+    <button class="logo-plate" id="logoBtn">W0RD PL4T3</button>
+    <div>
+      <h1>UK Plate Finder</h1>
+      <p>Find personalised number plates currently for sale that spell your word</p>
+    </div>
+  </div>
+  <nav>
+    <button class="nav-btn active" id="navHome">Home</button>
+    <button class="nav-btn" id="navSearch">Search</button>
+    <button class="nav-btn" id="navNews">News</button>
+    <button class="nav-btn" id="navFriends">Friends</button>
+  </nav>
+</header>
+
+<!-- ================================================================== -->
+<!-- HOME VIEW                                                            -->
+<!-- ================================================================== -->
+<div id="homeView">
+  <section class="hero">
+    <div class="hero-big-plate">
+      <span class="hero-big-plate-text">W0RD PL4T3</span>
+    </div>
+    <h2>Find your perfect plate</h2>
+    <p>Search every major UK dealer in seconds — live prices, real stock.</p>
+    <div class="hero-search">
+      <div class="hero-search-wrap">
+        <input id="heroInput" type="text" maxlength="9"
+          placeholder="e.g. JAMES, BOSS…" autocomplete="off" spellcheck="false" />
+      </div>
+      <button class="hero-search-btn" id="heroSearchBtn">SEARCH</button>
+    </div>
+  </section>
+  <section class="featured-section">
+    <p class="section-heading">Featured plates for sale</p>
+    <div id="featuredGrid">
+      <div class="grid-placeholder"><div class="spinner"></div><span>Loading live plates…</span></div>
+    </div>
+  </section>
+</div>
+
+<!-- ================================================================== -->
+<!-- SEARCH VIEW                                                          -->
+<!-- ================================================================== -->
+<div id="searchView">
+  <main class="page-main">
+    <section class="search-section">
+      <div class="mode-tabs">
+        <button class="mode-tab active" data-mode="word">WORD SEARCH</button>
+        <button class="mode-tab" data-mode="exact">EXACT PLATE</button>
+      </div>
+      <h2 id="modeLabel">Search by word</h2>
+      <div class="search-form">
+        <div class="search-input-wrap">
+          <input id="searchInput" type="text" maxlength="9"
+            placeholder="e.g. JAMES, B055, W1LLY…" autocomplete="off" spellcheck="false" />
+          <button class="clear-btn" id="clearBtn" title="Clear">✕</button>
+        </div>
+        <button class="search-btn" id="searchBtn">SEARCH</button>
+      </div>
+      <p class="hints" id="hintsWord">
+        Searches all major UK plate dealers for plates currently on sale.
+        Numbers substitute letters:
+        <strong>0=O</strong> <strong>1=I/L</strong> <strong>3=E</strong>
+        <strong>4=A</strong> <strong>5=S</strong> <strong>7=T</strong>
+        <strong>8=B</strong> — e.g. <strong>W1LLY</strong>, <strong>B055</strong>, <strong>L0V3</strong>
+      </p>
+      <p class="hints" id="hintsExact" style="display:none">
+        Type the <strong>exact plate</strong> you want to find — e.g. <strong>B0SS</strong> or <strong>K1 NG</strong>.
+        Only plates matching this exact sequence will be shown.
+      </p>
+    </section>
+    <div id="statusBar"></div>
+    <div id="resultsMeta" style="display:none">
+      <div class="count">
+        <strong id="resultCount">0</strong> plates found
+        <span id="patternsNote" style="margin-left:6px;font-size:12px"></span>
+      </div>
+      <select id="sortSelect">
+        <option value="match_price" selected>Closest match, low → high</option>
+        <option value="match_desc">Closest match first</option>
+        <option value="price_asc">Price: low → high</option>
+        <option value="price_desc">Price: high → low</option>
+        <option value="plate_asc">Plate A→Z</option>
+      </select>
+    </div>
+    <div id="results"></div>
+    <div id="emptyState">
+      <div class="big-plate">🔍</div>
+      <h3>No plates found</h3>
+      <p>No plates currently for sale match your search.<br>Try a different word or spelling.</p>
+    </div>
+  </main>
+</div>
+
+<!-- ================================================================== -->
+<!-- NEWS VIEW                                                            -->
+<!-- ================================================================== -->
+<div id="newsView">
+  <main class="page-main">
+    <p class="section-heading">Number plate news</p>
+    <div id="newsGrid" class="news-grid">
+      <div class="grid-placeholder" style="grid-column:1/-1">
+        <div class="spinner"></div><span>Fetching latest news…</span>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ================================================================== -->
+<!-- FRIENDS VIEW                                                         -->
+<!-- ================================================================== -->
+<div id="friendsView">
+  <main class="page-main">
+    <div class="friends-header">
+      <h2>Torqwales</h2>
+      <p>The Welsh car community — follow them across all platforms</p>
+    </div>
+    <p class="section-heading">Social profiles</p>
+    <div id="socialGrid" class="social-grid">
+      <div class="grid-placeholder" style="grid-column:1/-1">
+        <div class="spinner"></div><span>Loading profiles…</span>
+      </div>
+    </div>
+    <div id="websiteContent" class="website-section" style="display:none">
+      <p class="section-heading">From torqwales.co.uk</p>
+      <div id="siteSections" class="site-sections"></div>
+    </div>
+  </main>
+</div>
+
+<footer>
+  Live data scraped from UK plate dealers &mdash; prices and availability may change. Always verify on the seller's site before purchasing.
+</footer>
+
+<script>
+  /* ---- elements ---- */
+  const logoBtn     = document.getElementById('logoBtn');
+  const navHome     = document.getElementById('navHome');
+  const navSearch   = document.getElementById('navSearch');
+  const navNews     = document.getElementById('navNews');
+  const navFriends  = document.getElementById('navFriends');
+  const homeView    = document.getElementById('homeView');
+  const searchView  = document.getElementById('searchView');
+  const newsView    = document.getElementById('newsView');
+  const friendsView = document.getElementById('friendsView');
+
+  const heroInput    = document.getElementById('heroInput');
+  const heroSearchBtn= document.getElementById('heroSearchBtn');
+  const searchInput  = document.getElementById('searchInput');
+  const clearBtn     = document.getElementById('clearBtn');
+  const searchBtn    = document.getElementById('searchBtn');
+  const statusBar    = document.getElementById('statusBar');
+  const resultsMeta  = document.getElementById('resultsMeta');
+  const resultsDiv   = document.getElementById('results');
+  const emptyState   = document.getElementById('emptyState');
+  const resultCount  = document.getElementById('resultCount');
+  const patternsNote = document.getElementById('patternsNote');
+  const sortSelect   = document.getElementById('sortSelect');
+  const modeLabel    = document.getElementById('modeLabel');
+  const hintsWord    = document.getElementById('hintsWord');
+  const hintsExact   = document.getElementById('hintsExact');
+  const modeTabs     = document.querySelectorAll('.mode-tab');
+  const featuredGrid = document.getElementById('featuredGrid');
+  const newsGrid     = document.getElementById('newsGrid');
+  const socialGrid   = document.getElementById('socialGrid');
+
+  let currentResults = [];
+  let abortCtrl      = null;
+  let searchMode     = 'word';
+  let newsLoaded     = false;
+  let friendsLoaded  = false;
+
+  /* ------------------------------------------------------------------ */
+  /* Routing                                                              */
+  /* ------------------------------------------------------------------ */
+  const VIEWS = {
+    home:    { el: homeView,    btn: navHome    },
+    search:  { el: searchView,  btn: navSearch  },
+    news:    { el: newsView,    btn: navNews    },
+    friends: { el: friendsView, btn: navFriends },
+  };
+
+  function showView(name) {
+    Object.entries(VIEWS).forEach(([k, v]) => {
+      v.el.style.display  = k === name ? 'block' : 'none';
+      v.btn.classList.toggle('active', k === name);
+    });
+    if (name === 'home') loadFeatured();
+    if (name === 'news'    && !newsLoaded)     loadNews();
+    if (name === 'friends' && !friendsLoaded)  loadFriends();
+  }
+
+  logoBtn.addEventListener('click',   () => showView('home'));
+  navHome.addEventListener('click',   () => showView('home'));
+  navSearch.addEventListener('click', () => { showView('search'); searchInput.focus(); });
+  navNews.addEventListener('click',   () => showView('news'));
+  navFriends.addEventListener('click',() => showView('friends'));
+
+  /* ------------------------------------------------------------------ */
+  /* Hero search                                                          */
+  /* ------------------------------------------------------------------ */
+  heroInput.addEventListener('input', () => {
+    heroInput.value = heroInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  });
+  heroInput.addEventListener('keydown', e => { if (e.key === 'Enter') heroGo(); });
+  heroSearchBtn.addEventListener('click', heroGo);
+
+  function heroGo() {
+    const q = heroInput.value.trim();
+    if (!q) { heroInput.focus(); return; }
+    searchInput.value = q;
+    clearBtn.style.display = 'block';
+    showView('search');
+    doSearch();
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Mode tabs                                                            */
+  /* ------------------------------------------------------------------ */
+  modeTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      modeTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      searchMode = tab.dataset.mode;
+      if (searchMode === 'exact') {
+        modeLabel.textContent = 'Search by exact plate';
+        searchInput.placeholder = 'e.g. B0SS, K1 NG, W1LLY…';
+        sortSelect.style.display = 'none';
+        hintsWord.style.display  = 'none';
+        hintsExact.style.display = 'block';
+      } else {
+        modeLabel.textContent = 'Search by word';
+        searchInput.placeholder = 'e.g. JAMES, B055, W1LLY…';
+        sortSelect.style.display = '';
+        hintsWord.style.display  = 'block';
+        hintsExact.style.display = 'none';
+      }
+      reset();
+    });
+  });
+
+  /* ------------------------------------------------------------------ */
+  /* Search input events                                                  */
+  /* ------------------------------------------------------------------ */
+  searchInput.addEventListener('input', () => {
+    clearBtn.style.display = searchInput.value ? 'block' : 'none';
+    if (searchMode === 'exact') {
+      searchInput.value = searchInput.value.toUpperCase().replace(/[^A-Z0-9\s]/g, '');
+    } else {
+      searchInput.value = searchInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    }
+  });
+  clearBtn.addEventListener('click', () => {
+    searchInput.value = ''; clearBtn.style.display = 'none'; searchInput.focus(); reset();
+  });
+  searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+  searchBtn.addEventListener('click', doSearch);
+  sortSelect.addEventListener('change', () => renderResults(currentResults));
+
+  /* ------------------------------------------------------------------ */
+  /* Search                                                               */
+  /* ------------------------------------------------------------------ */
+  async function doSearch() {
+    const q = searchInput.value.trim();
+    if (!q) { searchInput.focus(); return; }
+    if (abortCtrl) abortCtrl.abort();
+    abortCtrl = new AbortController();
+    const isExact = searchMode === 'exact';
+    const param   = isExact ? `plate=${encodeURIComponent(q)}` : `q=${encodeURIComponent(q)}`;
+    setLoading(true, `Searching all platforms for "${q}"…`);
+    reset(false);
+    try {
+      const res  = await fetch(`/api/search?${param}`, { signal: abortCtrl.signal });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || 'Something went wrong'); return; }
+      let results = data.results || [];
+      if (isExact) {
+        const norm = q.replace(/\s+/g, '').toUpperCase();
+        results = results.filter(r => (r.plate || '').replace(/\s+/g, '').toUpperCase() === norm);
+      }
+      currentResults = results;
+      patternsNote.textContent = data.patterns_searched
+        ? `(${data.patterns_searched} plate patterns checked${data.from_cache ? ', cached' : ''})`
+        : (data.from_cache ? '(cached)' : '');
+      if (currentResults.length === 0) { setLoading(false); emptyState.style.display = 'block'; return; }
+      setLoading(false);
+      setInfo(`Found ${currentResults.length} plate${currentResults.length === 1 ? '' : 's'} currently for sale.`);
+      renderResults(currentResults);
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+      setError('Network error — is the server running?');
+    }
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Plate card render                                                    */
+  /* ------------------------------------------------------------------ */
+  function matchTier(score) {
+    if (score >= 90) return 0; if (score >= 70) return 1;
+    if (score >= 40) return 2; if (score >   0) return 3; return 4;
+  }
+
+  function renderResults(results) {
+    const sort   = searchMode === 'exact' ? 'price_asc' : sortSelect.value;
+    const sorted = [...results].sort((a, b) => {
+      if (sort === 'match_price') {
+        const td = matchTier(a.match_score ?? 0) - matchTier(b.match_score ?? 0);
+        if (td !== 0) return td;
+        return (a.price_numeric ?? Infinity) - (b.price_numeric ?? Infinity);
+      }
+      if (sort === 'match_desc') {
+        const sd = (b.match_score ?? 0) - (a.match_score ?? 0);
+        if (sd !== 0) return sd;
+        return (a.price_numeric ?? Infinity) - (b.price_numeric ?? Infinity);
+      }
+      if (sort === 'price_asc')  return (a.price_numeric ?? Infinity)  - (b.price_numeric ?? Infinity);
+      if (sort === 'price_desc') return (b.price_numeric ?? -Infinity) - (a.price_numeric ?? -Infinity);
+      return (a.plate || '').localeCompare(b.plate || '');
+    });
+    resultCount.textContent = sorted.length;
+    resultsMeta.style.display = 'flex';
+    emptyState.style.display  = 'none';
+    resultsDiv.innerHTML = sorted.map(buildPlateCard).join('');
+  }
+
+  function buildPlateCard(r) {
+    const priceClass = (r.price || '').startsWith('£') ? '' : 'poa';
+    const words = (r.matches || []).slice(0, 6).map(w => `<span class="word-badge">${esc(w)}</span>`).join('');
+    const wordsRow = words ? `<div class="matches-row">Spells: ${words}</div>` : '';
+    const score = r.match_score ?? 0;
+    const scoreLabel = score >= 90 ? 'Exact' : score >= 70 ? 'Very close' : score >= 40 ? 'Close' : score > 0 ? 'Partial' : 'Related';
+    const scoreColor = score >= 90 ? '#4caf79' : score >= 70 ? '#8bc34a' : score >= 40 ? '#f5c400' : score > 0 ? '#ff9800' : '#7a7a99';
+    return `
+      <div class="card">
+        <div class="uk-plate"><span class="plate-text-inner">${esc(r.plate)}</span></div>
+        <div class="card-meta">
+          <div class="price-row"><span class="price ${priceClass}">${esc(r.price || 'POA')}</span></div>
+          <div class="match-bar-wrap">
+            <span style="color:${scoreColor};font-weight:600;min-width:58px">${scoreLabel}</span>
+            <div class="match-bar-track">
+              <div class="match-bar-fill" style="width:${score}%;background:${scoreColor}"></div>
+            </div>
+            <span style="min-width:28px;text-align:right">${score > 0 ? Math.round(score) + '%' : ''}</span>
+          </div>
+          ${wordsRow}
+          <div class="source-row"><span class="source-dot"></span><span>${esc(r.site || 'Unknown')}</span></div>
+        </div>
+        <a class="buy-btn" href="${esc(r.url || '#')}" target="_blank" rel="noopener noreferrer">View &amp; Buy →</a>
+      </div>`;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Featured plates                                                      */
+  /* ------------------------------------------------------------------ */
+  let _featuredPollTimer = null;
+
+  async function loadFeatured() {
+    if (_featuredPollTimer) { clearTimeout(_featuredPollTimer); _featuredPollTimer = null; }
+    featuredGrid.innerHTML = '<div class="grid-placeholder"><div class="spinner"></div><span>Finding plates…</span></div>';
+    try {
+      const res  = await fetch('/api/featured');
+      const data = await res.json();
+      const results = data.results || [];
+      if (data.loading || !results.length) {
+        // Pool still building — retry in 3 s
+        _featuredPollTimer = setTimeout(loadFeatured, 3000);
+        return;
+      }
+      featuredGrid.innerHTML = results.map(buildPlateCard).join('');
+    } catch {
+      featuredGrid.innerHTML = '<div class="grid-placeholder">Could not load featured plates.</div>';
+    }
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* News                                                                 */
+  /* ------------------------------------------------------------------ */
+  async function loadNews() {
+    newsLoaded = true;
+    try {
+      const res  = await fetch('/api/news');
+      const data = await res.json();
+      const articles = data.articles || [];
+      if (!articles.length) {
+        newsGrid.innerHTML = '<div class="grid-placeholder" style="grid-column:1/-1">No news articles found.</div>';
+        return;
+      }
+      newsGrid.innerHTML = articles.map(a => {
+        const date = a.published ? new Date(a.published).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) : '';
+        return `
+          <a class="news-card" href="${esc(a.url)}" target="_blank" rel="noopener noreferrer">
+            <div class="news-source">
+              <span class="news-source-dot"></span>
+              ${esc(a.source || 'News')}
+            </div>
+            <div class="news-title">${esc(a.title)}</div>
+            ${a.description ? `<div class="news-desc">${esc(a.description)}</div>` : ''}
+            ${date ? `<div class="news-date">${date}</div>` : ''}
+          </a>`;
+      }).join('');
+    } catch {
+      newsGrid.innerHTML = '<div class="grid-placeholder" style="grid-column:1/-1">Could not load news.</div>';
+    }
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Friends                                                              */
+  /* ------------------------------------------------------------------ */
+  const PLATFORM_ICONS = {
+    linktree:  { icon: '🌿', emoji: '🌿' },
+    instagram: { icon: 'ig', emoji: '📸' },
+    tiktok:    { icon: 'tt', emoji: '🎵' },
+    website:   { icon: 'W',  emoji: '🌐' },
+  };
+
+  function fmtNum(n) {
+    if (!n) return '0';
+    if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+    if (n >= 1000)    return (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'K';
+    return String(n);
+  }
+
+  async function loadFriends() {
+    friendsLoaded = true;
+    try {
+      const res  = await fetch('/api/friends');
+      const data = await res.json();
+      const d    = data.data || {};
+      const social  = d.social  || [];
+      const website = d.website || {};
+
+      // Social cards
+      socialGrid.innerHTML = social.map(p => {
+        if (!p) return '';
+        const pl = p.platform;
+        const avatarHtml = p.avatar
+          ? `<img class="social-avatar" src="${esc(p.avatar)}" alt="${esc(p.name || '')}" onerror="this.style.display='none'">`
+          : `<div class="social-avatar-placeholder">${PLATFORM_ICONS[pl]?.emoji || '?'}</div>`;
+
+        let statsHtml = '';
+        if (pl === 'linktree' && (p.links || []).length)
+          statsHtml = `<div class="social-stats"><div class="stat"><span class="stat-value">${p.links.length}</span><span class="stat-label">Links</span></div></div>`;
+        if (pl === 'instagram')
+          statsHtml = `<div class="social-stats">
+            ${p.followers ? `<div class="stat"><span class="stat-value">${fmtNum(p.followers)}</span><span class="stat-label">Followers</span></div>` : ''}
+            ${p.posts     ? `<div class="stat"><span class="stat-value">${fmtNum(p.posts)}</span><span class="stat-label">Posts</span></div>` : ''}
+          </div>`;
+        if (pl === 'tiktok')
+          statsHtml = `<div class="social-stats">
+            ${p.followers ? `<div class="stat"><span class="stat-value">${fmtNum(p.followers)}</span><span class="stat-label">Followers</span></div>` : ''}
+            ${p.likes     ? `<div class="stat"><span class="stat-value">${fmtNum(p.likes)}</span><span class="stat-label">Likes</span></div>` : ''}
+            ${p.videos    ? `<div class="stat"><span class="stat-value">${fmtNum(p.videos)}</span><span class="stat-label">Videos</span></div>` : ''}
+          </div>`;
+
+        const bioText = (p.bio || '').replace(/\n/g, ' ').trim().slice(0, 140);
+
+        const ltLinksHtml = (pl === 'linktree' && (p.links || []).length)
+          ? `<div class="lt-links">${p.links.map(l =>
+              `<a class="lt-link" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label)}</a>`
+            ).join('')}</div>`
+          : '';
+
+        return `
+          <div class="social-card ${pl}">
+            <div class="social-platform-row">
+              <div class="platform-icon ${pl}">${PLATFORM_ICONS[pl]?.icon || '?'}</div>
+              <div>
+                <div class="platform-name">${esc(p.name || pl)}</div>
+                <div class="platform-handle">${esc(p.handle || '')}</div>
+              </div>
+              ${avatarHtml}
+            </div>
+            ${statsHtml}
+            ${bioText ? `<div class="social-bio">${esc(bioText)}</div>` : ''}
+            ${ltLinksHtml}
+            ${!ltLinksHtml ? `<a class="visit-btn" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">Visit Profile →</a>` : ''}
+          </div>`;
+      }).join('');
+
+      // Website sections
+      const sections = website.sections || [];
+      if (sections.length) {
+        document.getElementById('websiteContent').style.display = 'block';
+        document.getElementById('siteSections').innerHTML = sections.map(sec => {
+          const imgHtml = sec.image
+            ? `<img class="site-section-img" src="${esc(sec.image)}" alt="${esc(sec.image_alt || sec.title || '')}" loading="lazy">`
+            : '';
+          const titleHtml = sec.title
+            ? `<div class="site-section-title">${esc(sec.title)}</div>`
+            : '';
+          const bodyHtml = sec.body
+            ? `<div class="site-section-text">${esc(sec.body)}</div>`
+            : '';
+          const linksHtml = (sec.links || []).length
+            ? `<div class="site-section-links">${sec.links.map(l =>
+                `<a class="site-section-link" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label)} →</a>`
+              ).join('')}</div>`
+            : '';
+          return `
+            <div class="site-section-card">
+              ${imgHtml}
+              <div class="site-section-body">
+                ${titleHtml}
+                ${bodyHtml}
+                ${linksHtml}
+              </div>
+            </div>`;
+        }).join('');
+      }
+
+    } catch {
+      socialGrid.innerHTML = '<div class="grid-placeholder" style="grid-column:1/-1">Could not load profiles.</div>';
+    }
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Status helpers                                                       */
+  /* ------------------------------------------------------------------ */
+  function setLoading(on, msg) {
+    searchBtn.disabled = on;
+    if (on) {
+      statusBar.className = 'loading';
+      statusBar.innerHTML = `<div class="spinner"></div><span>${msg || 'Searching…'}</span>`;
+    } else {
+      if (statusBar.className === 'loading') statusBar.style.display = 'none';
+    }
+  }
+  function setError(msg) { searchBtn.disabled = false; statusBar.className = 'error'; statusBar.textContent = '⚠ ' + msg; }
+  function setInfo(msg)  { statusBar.className = 'info'; statusBar.textContent = '✓ ' + msg; }
+  function reset(clearStatus = true) {
+    resultsDiv.innerHTML = '';
+    resultsMeta.style.display = 'none';
+    emptyState.style.display  = 'none';
+    if (clearStatus) statusBar.style.display = 'none';
+    currentResults = [];
+  }
+  function esc(str) {
+    return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Initial state                                                        */
+  /* ------------------------------------------------------------------ */
+  showView('home');
+</script>
+
+<script>
+/* -------------------------------------------------------------------------
+   Starfield
+   ------------------------------------------------------------------------- */
+(function () {
+  const canvas = document.getElementById('starfield');
+  const ctx    = canvas.getContext('2d');
+  let W, H;
+  const mouse = { x: -9999, y: -9999 };
+  let stars = [], shoot = null, shootAt = 0;
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    buildStars();
+  }
+  function buildStars() {
+    stars = [];
+    const n = Math.round(W * H / 5500);
+    for (let i = 0; i < n; i++) {
+      const depth = Math.random(), bx = Math.random() * W, by = Math.random() * H;
+      stars.push({ bx, by, x: bx, y: by, r: 0.3 + (1 - depth) * 2.2,
+        alpha: 0.25 + (1 - depth) * 0.75, depth,
+        tSpeed: 0.4 + Math.random() * 1.4, tPhase: Math.random() * Math.PI * 2,
+        pScale: (1 - depth) * 18 });
+    }
+  }
+  function spawnShoot(now) {
+    const angle = (20 + Math.random() * 30) * (Math.PI / 180), speed = 6 + Math.random() * 5;
+    shoot = { x: Math.random() * W * 0.7, y: Math.random() * H * 0.25,
+      vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+      len: 70 + Math.random() * 80, life: 1.0 };
+    shootAt = now + 7000 + Math.random() * 11000;
+  }
+  function draw(now) {
+    ctx.clearRect(0, 0, W, H);
+    const t = now * 0.001, cx = (mouse.x / W - 0.5), cy = (mouse.y / H - 0.5);
+    for (const s of stars) {
+      s.x += (s.bx + cx * s.pScale - s.x) * 0.04;
+      s.y += (s.by + cy * s.pScale - s.y) * 0.04;
+      const twinkle = 0.55 + 0.45 * Math.sin(t * s.tSpeed + s.tPhase);
+      const dx = s.x - mouse.x, dy = s.y - mouse.y, dist2 = dx*dx + dy*dy;
+      const hover = dist2 < 200*200 ? 1 - Math.sqrt(dist2) / 200 : 0;
+      const a = Math.min(1, s.alpha * twinkle + hover * 0.7), r = s.r + hover * s.r * 2.5;
+      if (hover > 0.05) {
+        const haloR = r * 7, grad = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, haloR);
+        grad.addColorStop(0, `rgba(245,196,0,${hover * 0.45})`); grad.addColorStop(1, 'transparent');
+        ctx.beginPath(); ctx.arc(s.x, s.y, haloR, 0, Math.PI*2); ctx.fillStyle = grad; ctx.fill();
+      }
+      ctx.beginPath(); ctx.arc(s.x, s.y, r, 0, Math.PI*2);
+      ctx.fillStyle = hover > 0.15 ? `rgba(255,230,120,${a})` : `rgba(220,235,255,${a})`; ctx.fill();
+    }
+    if (mouse.x > -9000) {
+      const near = [];
+      for (const s of stars) { const dx = s.x-mouse.x, dy = s.y-mouse.y; if (dx*dx+dy*dy < 220*220) near.push(s); if (near.length >= 14) break; }
+      ctx.lineWidth = 0.5;
+      for (let i = 0; i < near.length; i++) for (let j = i+1; j < near.length; j++) {
+        const a = near[i], b = near[j], dx = a.x-b.x, dy = a.y-b.y, d = Math.sqrt(dx*dx+dy*dy);
+        if (d < 110) { ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.strokeStyle = `rgba(245,196,0,${(1-d/110)*0.18})`; ctx.stroke(); }
+      }
+    }
+    if (!shoot && now >= shootAt) spawnShoot(now);
+    if (shoot) {
+      shoot.x += shoot.vx; shoot.y += shoot.vy; shoot.life -= 0.012;
+      if (shoot.life <= 0 || shoot.x > W+100 || shoot.y > H+100) { shoot = null; }
+      else {
+        const mag = Math.hypot(shoot.vx, shoot.vy), tail = shoot.len;
+        const tx = shoot.x - (shoot.vx/mag)*tail, ty = shoot.y - (shoot.vy/mag)*tail;
+        const grad = ctx.createLinearGradient(tx, ty, shoot.x, shoot.y);
+        grad.addColorStop(0, 'transparent'); grad.addColorStop(1, `rgba(255,255,255,${shoot.life*0.9})`);
+        ctx.beginPath(); ctx.moveTo(tx,ty); ctx.lineTo(shoot.x,shoot.y);
+        ctx.strokeStyle = grad; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.beginPath(); ctx.arc(shoot.x, shoot.y, 1.5, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(255,255,255,${shoot.life})`; ctx.fill();
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+  window.addEventListener('mousemove',  e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+  window.addEventListener('mouseleave', () => { mouse.x = -9999; mouse.y = -9999; });
+  window.addEventListener('touchmove',  e => { if (e.touches[0]) { mouse.x = e.touches[0].clientX; mouse.y = e.touches[0].clientY; } }, { passive: true });
+  window.addEventListener('resize', resize);
+  resize();
+  requestAnimationFrame(function kickoff(now) { shootAt = now + 6000 + Math.random() * 8000; requestAnimationFrame(draw); });
+})();
+</script>
+</body>
+</html>
