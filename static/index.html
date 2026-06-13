@@ -540,6 +540,316 @@
     .site-section-link:hover { background: var(--accent); color: var(--plate-black); }
 
     /* ------------------------------------------------------------------ */
+    /* Login button                                                         */
+    /* ------------------------------------------------------------------ */
+    .login-btn {
+      margin-left: auto;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .5px;
+      padding: 7px 16px;
+      transition: color .15s, border-color .15s, background .15s;
+      white-space: nowrap;
+    }
+    .login-btn:hover { color: var(--accent); border-color: var(--accent); }
+    .login-btn.logged-in { color: var(--accent); border-color: rgba(245,196,0,.4); background: rgba(245,196,0,.08); }
+
+    /* ------------------------------------------------------------------ */
+    /* Login modal                                                          */
+    /* ------------------------------------------------------------------ */
+    .modal-backdrop {
+      display: none; position: fixed; inset: 0; z-index: 100;
+      background: rgba(0,0,0,.7); backdrop-filter: blur(4px);
+      align-items: center; justify-content: center;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 32px; width: 100%; max-width: 360px;
+      position: relative;
+    }
+    .modal h2 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+    .modal p  { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+    .modal-close {
+      position: absolute; top: 16px; right: 16px;
+      background: none; border: none; color: var(--muted);
+      font-size: 20px; cursor: pointer; line-height: 1;
+    }
+    .modal-close:hover { color: var(--text); }
+    .modal-input {
+      width: 100%; background: var(--bg); border: 2px solid var(--border);
+      border-radius: 8px; color: var(--text); font-size: 22px;
+      font-weight: 700; letter-spacing: 8px; padding: 12px 16px;
+      outline: none; transition: border-color .2s; text-align: center;
+      margin-bottom: 12px;
+    }
+    .modal-input:focus { border-color: var(--accent); }
+    .modal-input.error { border-color: var(--red); }
+    .modal-error { color: var(--red); font-size: 12px; margin-bottom: 12px; display: none; text-align: center; }
+    .modal-submit {
+      width: 100%; background: var(--accent); border: none; border-radius: 8px;
+      color: var(--plate-black); cursor: pointer; font-size: 15px;
+      font-weight: 800; padding: 12px; letter-spacing: .5px;
+      transition: background .2s;
+    }
+    .modal-submit:hover { background: var(--accent-dark); }
+
+    /* ------------------------------------------------------------------ */
+    /* MEAL PLANNER VIEW                                                    */
+    /* ------------------------------------------------------------------ */
+    #mealPlannerView { display: none; }
+
+    .planner-header {
+      display: flex; align-items: center; gap: 16px;
+      flex-wrap: wrap; margin-bottom: 28px;
+    }
+    .planner-header h2 { font-size: 22px; font-weight: 800; }
+
+    .planner-controls {
+      display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-left: auto;
+    }
+    .planner-controls label { font-size: 12px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+    .planner-select, .planner-budget {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text); font-size: 13px; padding: 7px 10px; cursor: pointer;
+    }
+    .planner-budget { width: 90px; outline: none; }
+    .planner-budget:focus { border-color: var(--accent); }
+
+    .budget-bar-wrap {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      padding: 14px 20px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    }
+    .budget-label { font-size: 13px; color: var(--muted); white-space: nowrap; }
+    .budget-track { flex: 1; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; min-width: 80px; }
+    .budget-fill  { height: 100%; border-radius: 4px; transition: width .4s, background .4s; }
+    .budget-total { font-size: 18px; font-weight: 800; color: var(--accent); white-space: nowrap; }
+    .budget-total.over { color: var(--red); }
+
+    /* Planner tabs */
+    .planner-tabs {
+      display: flex; gap: 4px;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 4px;
+      width: fit-content; margin-bottom: 24px;
+    }
+    .planner-tab {
+      background: none; border: none; border-radius: 5px;
+      color: var(--muted); cursor: pointer;
+      font-size: 12px; font-weight: 800; letter-spacing: 1.5px;
+      padding: 8px 20px; transition: background .15s, color .15s;
+    }
+    .planner-tab.active { background: var(--accent); color: var(--plate-black); }
+    .planner-tab:hover:not(.active) { color: var(--text); }
+
+    /* Week planner grid */
+    .week-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      margin-bottom: 32px;
+    }
+    @media (max-width: 700px) { .week-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .day-col { display: flex; flex-direction: column; gap: 6px; }
+    .day-heading {
+      text-align: center; font-size: 11px; font-weight: 800;
+      letter-spacing: 1px; text-transform: uppercase;
+      color: var(--accent); padding-bottom: 4px;
+      border-bottom: 1px solid var(--border); margin-bottom: 2px;
+    }
+
+    .meal-slot {
+      background: var(--bg); border: 1px dashed var(--border);
+      border-radius: 8px; padding: 8px; min-height: 68px;
+      cursor: pointer; transition: border-color .2s, background .2s;
+      display: flex; flex-direction: column; gap: 4px; position: relative;
+    }
+    .meal-slot:hover { border-color: var(--accent); background: rgba(245,196,0,.04); }
+    .meal-slot.filled { border-style: solid; border-color: var(--border); background: var(--surface); }
+    .meal-slot.filled:hover { border-color: var(--accent); }
+
+    .slot-type { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); }
+    .slot-empty-hint { font-size: 11px; color: var(--muted); margin-top: auto; text-align: center; padding: 4px 0; }
+    .slot-emoji { font-size: 20px; text-align: center; line-height: 1.2; }
+    .slot-name  { font-size: 10px; font-weight: 700; color: var(--text); line-height: 1.3; text-align: center; }
+    .slot-price { font-size: 10px; color: var(--accent); text-align: center; }
+    .slot-remove {
+      position: absolute; top: 4px; right: 4px;
+      background: none; border: none; color: var(--muted);
+      font-size: 12px; cursor: pointer; line-height: 1; padding: 2px;
+    }
+    .slot-remove:hover { color: var(--red); }
+
+    /* Recipe picker modal */
+    .recipe-modal {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 28px; width: 100%; max-width: 680px;
+      position: relative; max-height: 85vh; display: flex; flex-direction: column;
+    }
+    .recipe-modal h3 { font-size: 18px; font-weight: 800; margin-bottom: 16px; }
+    .recipe-search-bar {
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 7px; color: var(--text); font-size: 13px;
+      padding: 9px 14px; outline: none; margin-bottom: 16px;
+      transition: border-color .2s;
+    }
+    .recipe-search-bar:focus { border-color: var(--accent); }
+    .recipe-picker-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 10px; overflow-y: auto; flex: 1;
+    }
+    .recipe-pick-card {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 9px; padding: 14px 10px;
+      cursor: pointer; text-align: center;
+      transition: border-color .2s, background .2s;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .recipe-pick-card:hover { border-color: var(--accent); background: rgba(245,196,0,.06); }
+    .rpc-emoji { font-size: 30px; }
+    .rpc-name  { font-size: 12px; font-weight: 700; color: var(--text); line-height: 1.3; }
+    .rpc-serves{ font-size: 11px; color: var(--muted); }
+    .rpc-price { font-size: 12px; color: var(--accent); font-weight: 700; }
+
+    /* Recipes browse */
+    .recipes-browse-bar {
+      display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 20px;
+    }
+    .recipes-search-input {
+      flex: 1; min-width: 180px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 7px; color: var(--text); font-size: 13px; padding: 9px 14px;
+      outline: none; transition: border-color .2s;
+    }
+    .recipes-search-input:focus { border-color: var(--accent); }
+    .recipes-cat-select {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 7px;
+      color: var(--text); font-size: 13px; padding: 9px 10px; cursor: pointer;
+    }
+    .recipes-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .recipe-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 18px;
+      display: flex; flex-direction: column; gap: 10px;
+      transition: border-color .2s, transform .15s;
+    }
+    .recipe-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .rc-thumb {
+      width: 100%; height: 130px; object-fit: cover; border-radius: 7px;
+      display: block; background: var(--border); margin-bottom: 10px;
+    }
+    .rc-top { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    .rc-emoji { font-size: 22px; }
+    .rc-info { flex: 1; min-width: 0; }
+    .rc-name  { font-size: 13px; font-weight: 800; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rc-serves{ font-size: 11px; color: var(--muted); }
+    .rc-tags  { display: flex; flex-wrap: wrap; gap: 4px; }
+    .rc-tag {
+      background: rgba(245,196,0,.1); border: 1px solid rgba(245,196,0,.25);
+      color: var(--accent); border-radius: 4px; padding: 2px 6px;
+      font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px;
+    }
+
+    /* Picker thumbnail */
+    .rpc-thumb {
+      width: 100%; height: 90px; object-fit: cover; border-radius: 6px;
+      display: block; background: var(--border); margin-bottom: 6px;
+    }
+
+    /* Shopping list price table */
+    .shopping-item { flex-wrap: wrap; gap: 8px; }
+    .si-name { flex-basis: 100%; }
+    .si-prices-row {
+      display: flex; gap: 6px; flex-wrap: wrap; width: 100%; padding-bottom: 4px;
+    }
+    .si-store-pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+      padding: 4px 8px; font-size: 11px; text-decoration: none; color: var(--text);
+      transition: border-color .15s, background .15s;
+    }
+    .si-store-pill:hover { border-color: var(--accent); background: rgba(245,196,0,.08); color: var(--accent); }
+    .si-store-pill.cheapest { border-color: var(--green); color: var(--green); }
+    .si-store-name  { font-weight: 700; color: var(--muted); font-size: 10px; }
+    .si-store-price { font-weight: 800; }
+    .si-store-link  { font-size: 11px; color: var(--muted); }
+
+    .price-loading {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 11px; color: var(--muted);
+    }
+    .price-loading .spinner { width: 12px; height: 12px; }
+
+    /* Download button */
+    .download-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: none; border: 1px solid var(--accent); border-radius: 7px;
+      color: var(--accent); cursor: pointer; font-size: 13px;
+      font-weight: 700; padding: 9px 18px; letter-spacing: .5px;
+      transition: background .18s, color .18s; text-decoration: none;
+    }
+    .download-btn:hover { background: var(--accent); color: var(--plate-black); }
+
+    /* Shopping list */
+    .shopping-list-wrap { max-width: 720px; }
+    .supermarket-tabs {
+      display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px;
+    }
+    .sm-tab {
+      background: none; border: 1px solid var(--border);
+      border-radius: 6px; color: var(--muted); cursor: pointer;
+      font-size: 12px; font-weight: 700; letter-spacing: .5px;
+      padding: 6px 14px; transition: all .15s;
+    }
+    .sm-tab.active { background: var(--accent); border-color: var(--accent); color: var(--plate-black); }
+    .sm-tab:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
+
+    .shopping-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 16px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; margin-bottom: 8px; gap: 12px;
+      transition: border-color .2s;
+    }
+    .shopping-item:hover { border-color: rgba(245,196,0,.3); }
+    .shopping-item.checked { opacity: .45; }
+    .si-check {
+      width: 18px; height: 18px; border-radius: 4px; border: 2px solid var(--border);
+      background: none; cursor: pointer; flex-shrink: 0; appearance: none;
+      transition: background .15s, border-color .15s; position: relative;
+    }
+    .si-check:checked { background: var(--accent); border-color: var(--accent); }
+    .si-check:checked::after {
+      content: '✓'; position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%,-50%); font-size: 11px; color: var(--plate-black); font-weight: 900;
+    }
+    .si-name { flex: 1; font-size: 14px; color: var(--text); }
+    .si-meals { font-size: 11px; color: var(--muted); }
+    .si-price { font-size: 15px; font-weight: 800; color: var(--accent); white-space: nowrap; }
+
+    .shopping-total {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 16px 20px; background: rgba(245,196,0,.08); border: 1px solid rgba(245,196,0,.3);
+      border-radius: 10px; margin-top: 16px;
+    }
+    .shopping-total span { font-size: 16px; font-weight: 800; }
+    .shopping-total .total-val { font-size: 24px; color: var(--accent); }
+    .shopping-total .total-val.over { color: var(--red); }
+
+    .empty-planner {
+      text-align: center; padding: 60px 20px; color: var(--muted);
+    }
+    .empty-planner .big-emoji { font-size: 48px; margin-bottom: 12px; }
+    .empty-planner p { font-size: 14px; }
+
+    /* ------------------------------------------------------------------ */
     /* Footer                                                               */
     /* ------------------------------------------------------------------ */
     footer {
@@ -560,12 +870,14 @@
       <h1>UK Plate Finder</h1>
       <p>Find personalised number plates currently for sale that spell your word</p>
     </div>
+    <button class="login-btn" id="loginBtn">Login</button>
   </div>
   <nav>
     <button class="nav-btn active" id="navHome">Home</button>
     <button class="nav-btn" id="navSearch">Search</button>
     <button class="nav-btn" id="navNews">News</button>
     <button class="nav-btn" id="navFriends">Friends</button>
+    <button class="nav-btn" id="navMealPlanner" style="display:none">Meal Planner</button>
   </nav>
 </header>
 
@@ -681,6 +993,109 @@
     <div id="websiteContent" class="website-section" style="display:none">
       <p class="section-heading">From torqwales.co.uk</p>
       <div id="siteSections" class="site-sections"></div>
+    </div>
+  </main>
+</div>
+
+<!-- ================================================================== -->
+<!-- LOGIN MODAL                                                          -->
+<!-- ================================================================== -->
+<div class="modal-backdrop" id="loginModal">
+  <div class="modal">
+    <button class="modal-close" id="loginModalClose">✕</button>
+    <h2>Sign In</h2>
+    <p>Enter your password to access the Meal Planner.</p>
+    <input class="modal-input" id="loginPasswordInput" type="password"
+      placeholder="••••••" maxlength="20" autocomplete="current-password" />
+    <div class="modal-error" id="loginError">Incorrect password. Try again.</div>
+    <button class="modal-submit" id="loginSubmit">Sign In</button>
+  </div>
+</div>
+
+<!-- ================================================================== -->
+<!-- RECIPE PICKER MODAL                                                  -->
+<!-- ================================================================== -->
+<div class="modal-backdrop" id="recipePickerModal">
+  <div class="recipe-modal">
+    <button class="modal-close" id="recipePickerClose">✕</button>
+    <h3 id="recipePickerTitle">Choose a meal</h3>
+    <input class="recipe-search-bar" id="recipeSearchBar" type="text" placeholder="Search recipes…" />
+    <div class="recipe-picker-grid" id="recipePickerGrid"></div>
+  </div>
+</div>
+
+<!-- ================================================================== -->
+<!-- MEAL PLANNER VIEW                                                    -->
+<!-- ================================================================== -->
+<div id="mealPlannerView">
+  <main class="page-main">
+    <div class="planner-header">
+      <h2>Meal Planner</h2>
+      <div class="planner-controls">
+        <div>
+          <label for="supermarketSelect">Supermarket</label><br>
+          <select class="planner-select" id="supermarketSelect">
+            <option value="cheapest">Cheapest available</option>
+            <option value="Tesco">Tesco</option>
+            <option value="Asda">Asda</option>
+            <option value="Sainsbury's">Sainsbury's</option>
+            <option value="Morrisons">Morrisons</option>
+            <option value="Aldi">Aldi</option>
+          </select>
+        </div>
+        <div>
+          <label for="peopleInput">People</label><br>
+          <input class="planner-budget" id="peopleInput" type="number" min="1" max="20" step="1" value="2" style="width:70px" />
+        </div>
+        <div>
+          <label for="budgetInput">Weekly budget (£)</label><br>
+          <input class="planner-budget" id="budgetInput" type="number" min="0" step="1" placeholder="e.g. 60" />
+        </div>
+      </div>
+    </div>
+
+    <div class="budget-bar-wrap" id="budgetBarWrap">
+      <span class="budget-label">Weekly spend</span>
+      <div class="budget-track"><div class="budget-fill" id="budgetFill" style="width:0%;background:var(--green)"></div></div>
+      <span class="budget-total" id="budgetTotal">£0.00</span>
+    </div>
+
+    <div class="planner-tabs">
+      <button class="planner-tab active" data-ptab="week">Week Planner</button>
+      <button class="planner-tab" data-ptab="recipes">All Recipes</button>
+      <button class="planner-tab" data-ptab="shopping">Shopping List</button>
+    </div>
+
+    <!-- Week planner -->
+    <div id="ptabWeek">
+      <div class="week-grid" id="weekGrid"></div>
+    </div>
+
+    <!-- All recipes -->
+    <div id="ptabRecipes" style="display:none">
+      <div class="recipes-browse-bar">
+        <input class="recipes-search-input" id="recipesBrowseSearch" type="text" placeholder="Search recipes…" />
+        <select class="recipes-cat-select" id="recipesCatFilter"><option value="">All categories</option></select>
+      </div>
+      <div id="recipesGridStatus" style="color:var(--muted);font-size:13px;margin-bottom:12px"></div>
+      <div class="recipes-grid" id="recipesGrid"></div>
+    </div>
+
+    <!-- Shopping list -->
+    <div id="ptabShopping" style="display:none">
+      <div class="shopping-list-wrap">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+          <span style="font-size:13px;color:var(--muted)" id="shoppingListStatus"></span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="download-btn" id="downloadListBtn">&#11015; Download CSV</button>
+            <label class="download-btn" style="cursor:pointer" title="Import a previously saved meal plan CSV">
+              &#11014; Import CSV
+              <input type="file" id="importCsvInput" accept=".csv" style="display:none" />
+            </label>
+          </div>
+        </div>
+        <div id="shoppingList"></div>
+      </div>
     </div>
   </main>
 </div>
@@ -1098,9 +1513,801 @@
   }
 
   /* ------------------------------------------------------------------ */
+  /* Meal planner nav wiring                                              */
+  /* ------------------------------------------------------------------ */
+  const navMealPlanner = document.getElementById('navMealPlanner');
+  const mealPlannerView = document.getElementById('mealPlannerView');
+  VIEWS.mealplanner = { el: mealPlannerView, btn: navMealPlanner };
+
+  navMealPlanner.addEventListener('click', () => showView('mealplanner'));
+
+  /* ------------------------------------------------------------------ */
   /* Initial state                                                        */
   /* ------------------------------------------------------------------ */
   showView('home');
+</script>
+
+<script>
+/* =========================================================================
+   LOGIN
+   ========================================================================= */
+(function () {
+  const loginBtn   = document.getElementById('loginBtn');
+  const modal      = document.getElementById('loginModal');
+  const closeBtn   = document.getElementById('loginModalClose');
+  const pwInput    = document.getElementById('loginPasswordInput');
+  const errEl      = document.getElementById('loginError');
+  const submitBtn  = document.getElementById('loginSubmit');
+
+  const PASSWORD = '12345';
+  let loggedIn = false;
+
+  function openModal() {
+    pwInput.value = ''; pwInput.classList.remove('error');
+    errEl.style.display = 'none';
+    modal.classList.add('open');
+    setTimeout(() => pwInput.focus(), 60);
+  }
+  function closeModal() { modal.classList.remove('open'); }
+  function attempt() {
+    if (pwInput.value === PASSWORD) {
+      closeModal();
+      loggedIn = true;
+      loginBtn.textContent = 'My Account';
+      loginBtn.classList.add('logged-in');
+      document.getElementById('navMealPlanner').style.display = '';
+      loadMealPlanner();
+      showView('mealplanner');
+    } else {
+      pwInput.classList.add('error');
+      errEl.style.display = 'block';
+      pwInput.select();
+    }
+  }
+
+  loginBtn.addEventListener('click', () => {
+    if (loggedIn) { showView('mealplanner'); } else { openModal(); }
+  });
+  closeBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+  submitBtn.addEventListener('click', attempt);
+  pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') attempt(); });
+  pwInput.addEventListener('input', () => { pwInput.classList.remove('error'); errEl.style.display = 'none'; });
+})();
+
+/* =========================================================================
+   MEAL PLANNER
+   ========================================================================= */
+(function () {
+  const DAYS  = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const MEALS = ['Breakfast', 'Lunch', 'Dinner'];
+
+  const CATEGORY_EMOJIS = {
+    Beef: '🥩', Chicken: '🍗', Dessert: '🍮', Lamb: '🐑',
+    Miscellaneous: '🍽️', Pasta: '🍝', Pork: '🥓', Seafood: '🐟',
+    Side: '🥗', Starter: '🥙', Vegan: '🌱', Vegetarian: '🥦',
+    Breakfast: '🍳', Goat: '🐐', Bread: '🍞',
+  };
+
+  let allRecipes     = [];
+  let plannerLoaded  = false;
+  let activePlannerTab = 'week';
+  let activeShopSm   = 'Tesco';
+  let pickerTarget   = null;
+  let mealDetails    = {};  // id -> {ingredients:[{name,measure}], ...}
+  let priceCache     = {};  // ingredient name -> [{store,price,price_str,url,product}]
+  let shoppingIngredients = []; // current shopping list state (for download)
+
+  // plan[dayIdx][mealIdx] = mealId string or null
+  const plan = Array.from({ length: 7 }, () => Array(3).fill(null));
+
+  const supermarketSelect = document.getElementById('supermarketSelect');
+  const budgetInput       = document.getElementById('budgetInput');
+  const peopleInput       = document.getElementById('peopleInput');
+  const budgetFill        = document.getElementById('budgetFill');
+  const budgetTotal       = document.getElementById('budgetTotal');
+  const weekGrid          = document.getElementById('weekGrid');
+  const recipesGrid       = document.getElementById('recipesGrid');
+  const recipesGridStatus = document.getElementById('recipesGridStatus');
+  const shoppingList      = document.getElementById('shoppingList');
+  const recipePickerModal = document.getElementById('recipePickerModal');
+  const recipePickerClose = document.getElementById('recipePickerClose');
+  const recipePickerGrid  = document.getElementById('recipePickerGrid');
+  const recipePickerTitle = document.getElementById('recipePickerTitle');
+  const recipeSearchBar   = document.getElementById('recipeSearchBar');
+  const downloadListBtn   = document.getElementById('downloadListBtn');
+  const recipesBrowseSearch = document.getElementById('recipesBrowseSearch');
+  const recipesCatFilter    = document.getElementById('recipesCatFilter');
+  const shoppingListStatus  = document.getElementById('shoppingListStatus');
+
+  /* ---------------------------------------------------------------------- */
+  /* Load recipes from TheMealDB (+ static fallback data)                    */
+  /* ---------------------------------------------------------------------- */
+  async function loadMealPlanner() {
+    if (plannerLoaded) return;
+    plannerLoaded = true;
+
+    // Build week grid immediately so the tab isn't blank
+    buildWeekGrid();
+
+    // Load categories from TheMealDB
+    recipesGridStatus.textContent = 'Loading recipes…';
+    try {
+      const catResp = await fetch('https://www.themealdb.com/api/json/v1/1/categories.php');
+      const catData = await catResp.json();
+      const categories = catData.categories || [];
+
+      // Populate category filter
+      categories.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.strCategory;
+        opt.textContent = `${CATEGORY_EMOJIS[c.strCategory] || '🍽️'} ${c.strCategory}`;
+        recipesCatFilter.appendChild(opt);
+      });
+
+      // Load all meal lists in parallel (lightweight — just id/name/thumb)
+      const allMeals = [];
+      await Promise.all(categories.map(async (cat) => {
+        try {
+          const r = await fetch(`https://www.themealdb.com/api/json/v1/1/filter.php?c=${encodeURIComponent(cat.strCategory)}`);
+          const d = await r.json();
+          for (const m of d.meals || []) {
+            allMeals.push({
+              id: m.idMeal,
+              name: m.strMeal,
+              thumb: m.strMealThumb + '/preview',
+              category: cat.strCategory,
+              emoji: CATEGORY_EMOJIS[cat.strCategory] || '🍽️',
+              serves: 4,
+              ingredients: null,
+            });
+          }
+        } catch (_) {}
+      }));
+
+      allRecipes = allMeals;
+      recipesGridStatus.textContent = `${allRecipes.length} recipes loaded`;
+      buildRecipesGrid('', '');
+    } catch (err) {
+      recipesGridStatus.textContent = 'Could not load recipes from TheMealDB.';
+    }
+  }
+  window.loadMealPlanner = loadMealPlanner;
+
+  /* ---------------------------------------------------------------------- */
+  /* Fetch full meal details (ingredients + measures) on demand               */
+  /* ---------------------------------------------------------------------- */
+  async function fetchMealDetails(id) {
+    if (mealDetails[id]) return mealDetails[id];
+    try {
+      const r = await fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${id}`);
+      const d = await r.json();
+      const meal = d.meals?.[0];
+      if (!meal) return null;
+      const ingredients = [];
+      for (let i = 1; i <= 20; i++) {
+        const name = (meal[`strIngredient${i}`] || '').trim();
+        const meas = (meal[`strMeasure${i}`] || '').trim();
+        if (name) ingredients.push({ name, measure: meas });
+      }
+      const details = { id, name: meal.strMeal, thumb: meal.strMealThumb, ingredients };
+      mealDetails[id] = details;
+      return details;
+    } catch (_) { return null; }
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Ingredient price lookup — static UK prices + supermarket search links   */
+  /* ---------------------------------------------------------------------- */
+
+  // Approximate UK 2025 retail prices (£) keyed by lowercase ingredient name.
+  // Covers common TheMealDB ingredients. Prices are per typical retail unit.
+  const PRICE_DB = {
+    // Meat & fish
+    'beef':3.50,'beef mince':3.50,'ground beef':3.50,'minced beef':3.50,
+    'chicken breast':4.25,'chicken thighs':3.50,'chicken':3.50,'whole chicken':5.50,
+    'chicken drumsticks':2.99,'chicken wings':2.99,'chicken legs':3.25,
+    'lamb mince':4.50,'minced lamb':4.50,'lamb':5.00,'lamb chops':5.50,
+    'pork':3.50,'pork mince':3.20,'bacon':2.50,'streaky bacon':2.25,'back bacon':2.50,
+    'lardons':1.65,'smoked bacon':2.50,'pancetta':2.50,
+    'sausages':2.25,'pork sausages':2.25,'chorizo':2.50,
+    'salmon':4.50,'salmon fillets':4.50,'smoked salmon':3.50,
+    'cod':4.00,'cod fillets':4.00,'haddock':4.00,'fish fillets':3.50,
+    'prawns':4.00,'shrimp':4.00,'king prawns':4.50,
+    'tuna':1.10,'canned tuna':1.10,
+    'mince':3.50,'braising steak':5.00,'steak':6.00,
+    // Dairy & eggs
+    'eggs':1.89,'egg':1.89,'egg yolks':1.89,'egg yolk':1.89,'egg whites':1.89,
+    'milk':0.65,'whole milk':0.65,'semi-skimmed milk':0.65,
+    'butter':1.65,'unsalted butter':1.75,
+    'double cream':0.95,'single cream':0.89,'whipping cream':1.20,'cream':0.95,
+    'soured cream':0.89,'sour cream':0.89,'creme fraiche':1.10,
+    'cheddar':2.00,'cheese':2.00,'parmesan':2.00,'mozzarella':1.50,
+    'feta':2.00,'cream cheese':1.50,'ricotta':1.80,
+    'yogurt':0.89,'greek yogurt':1.10,'natural yogurt':0.89,
+    // Fruit & veg
+    'onion':0.15,'onions':0.45,'red onion':0.35,'shallots':0.89,
+    'garlic':0.49,'garlic clove':0.49,'garlic cloves':0.49,
+    'ginger':0.50,'fresh ginger':0.50,'root ginger':0.50,
+    'tomatoes':0.69,'cherry tomatoes':0.89,'plum tomatoes':0.89,
+    'potatoes':0.99,'new potatoes':0.99,'sweet potato':0.79,'sweet potatoes':0.99,
+    'carrots':0.55,'carrot':0.25,
+    'broccoli':0.89,'tenderstem broccoli':1.50,
+    'spinach':0.99,'baby spinach':0.99,'fresh spinach':0.99,
+    'mushrooms':0.89,'chestnut mushrooms':1.10,
+    'pepper':0.59,'red pepper':0.59,'green pepper':0.55,'yellow pepper':0.65,'bell pepper':0.59,
+    'courgette':0.45,'zucchini':0.45,'aubergine':0.75,'eggplant':0.75,
+    'leek':0.55,'leeks':0.89,'celery':0.75,'parsnip':0.75,'parsnips':0.89,
+    'peas':0.85,'frozen peas':0.85,'green beans':1.10,'asparagus':2.50,
+    'lemon':0.30,'lemon juice':0.89,'lime':0.30,'lime juice':0.89,
+    'orange':0.35,'apple':0.25,'banana':0.14,
+    'avocado':0.99,'cucumber':0.55,'lettuce':0.75,'iceberg lettuce':0.75,
+    'kale':0.99,'pak choi':0.89,'corn':0.55,'sweetcorn':0.75,
+    // Tins & jars
+    'chopped tomatoes':0.65,'canned tomatoes':0.65,'passata':0.99,
+    'tomato puree':0.55,'tomato paste':0.55,'tomato sauce':1.10,
+    'coconut milk':1.10,'coconut cream':1.20,
+    'kidney beans':0.65,'black beans':0.75,'chickpeas':0.75,'lentils':0.89,
+    'baked beans':0.55,'mushy peas':0.55,'cannellini beans':0.75,
+    'sweetcorn':0.55,'olives':1.50,'capers':1.25,
+    'anchovies':1.75,'sardines':1.10,
+    'chicken stock':0.89,'beef stock':0.89,'vegetable stock':0.89,
+    'chicken broth':0.89,'beef broth':0.89,
+    'stock':0.99,'stock cube':0.99,'stock cubes':0.99,
+    // Dry goods & pasta
+    'spaghetti':0.85,'pasta':0.85,'penne':0.85,'fusilli':0.85,'tagliatelle':0.99,
+    'lasagne sheets':1.10,'noodles':1.00,'rice noodles':1.25,'egg noodles':1.00,
+    'basmati rice':1.50,'rice':1.10,'long grain rice':1.10,'jasmine rice':1.50,
+    'plain flour':0.75,'self raising flour':0.85,'flour':0.75,
+    'breadcrumbs':0.99,'panko breadcrumbs':1.50,
+    'oats':0.79,'porridge oats':0.79,'rolled oats':0.85,
+    'bread':1.15,'white bread':1.15,'wholemeal bread':1.25,
+    'pitta bread':0.99,'tortillas':1.25,'wraps':1.25,
+    // Oils, sauces & condiments
+    'olive oil':2.50,'vegetable oil':1.25,'sunflower oil':1.50,'sesame oil':1.75,
+    'soy sauce':1.10,'light soy sauce':1.10,'dark soy sauce':1.10,
+    'worcestershire sauce':1.25,'hot sauce':1.50,'sriracha':2.00,
+    'fish sauce':1.50,'oyster sauce':1.75,'hoisin sauce':1.75,
+    'vinegar':0.89,'white wine vinegar':1.25,'balsamic vinegar':1.50,'red wine vinegar':1.25,
+    'ketchup':1.75,'mayonnaise':1.75,'mustard':1.00,'dijon mustard':1.25,
+    'pesto':1.75,'tahini':2.50,'harissa':1.75,
+    'honey':2.00,'maple syrup':4.00,'golden syrup':1.50,
+    'sugar':1.00,'brown sugar':1.25,'caster sugar':1.10,'icing sugar':1.00,
+    'salt':0.40,'pepper':0.75,'black pepper':0.75,
+    // Spices & herbs
+    'chilli powder':0.99,'cumin':0.99,'coriander':0.99,'paprika':0.99,
+    'smoked paprika':1.10,'turmeric':0.99,'garam masala':1.10,'curry powder':0.99,
+    'cinnamon':0.99,'nutmeg':1.10,'oregano':0.79,'thyme':0.79,'basil':0.79,
+    'bay leaves':0.79,'rosemary':0.79,'parsley':0.75,'fresh parsley':0.75,
+    'fresh coriander':0.79,'fresh basil':0.89,'fresh thyme':0.79,
+    'chilli flakes':0.99,'dried chilli':0.99,'chilli':0.29,
+    'cardamom':1.25,'cloves':0.99,'star anise':1.25,'fennel seeds':0.99,
+    // Pastes & curry
+    'tikka masala paste':1.50,'korma paste':1.50,'curry paste':1.25,
+    'thai green curry paste':1.25,'thai red curry paste':1.25,
+    'miso paste':2.00,'tomato puree':0.55,
+    // Alcohol (cooking)
+    'white wine':4.50,'red wine':4.50,'beer':1.20,'lager':1.20,
+    'brandy':9.00,'rum':9.00,'white rum':9.00,
+    // Baking
+    'baking powder':0.85,'baking soda':0.75,'bicarbonate of soda':0.75,
+    'yeast':0.85,'cocoa powder':1.50,'dark chocolate':1.50,'vanilla extract':2.00,
+    // Misc
+    'water':0,'vegetable stock cube':0.99,
+  };
+
+  // Build supermarket search URLs for any ingredient
+  function storeUrls(ingredient) {
+    const q = encodeURIComponent(ingredient);
+    return {
+      'Tesco':        `https://www.tesco.com/groceries/en-GB/search?query=${q}`,
+      "Sainsbury's":  `https://www.sainsburys.co.uk/shop/gb/groceries/search-results/${q}`,
+      'Asda':         `https://groceries.asda.com/search/${q}`,
+      'Morrisons':    `https://groceries.morrisons.com/search?entry=${q}`,
+      'Aldi':         `https://www.aldi.co.uk/search?q=${q}`,
+    };
+  }
+
+  // Look up a price from PRICE_DB using fuzzy substring matching
+  function lookupPrice(ingredient) {
+    const key = ingredient.toLowerCase().trim();
+    // Exact match
+    if (PRICE_DB[key] !== undefined) return PRICE_DB[key];
+    // Try longest substring match
+    let best = null, bestLen = 0;
+    for (const [k, v] of Object.entries(PRICE_DB)) {
+      if ((key.includes(k) || k.includes(key)) && k.length > bestLen) {
+        best = v; bestLen = k.length;
+      }
+    }
+    return best;
+  }
+
+  // Build price results for an ingredient (synchronous, no network needed)
+  function getIngredientPrices(ingredient) {
+    const urls     = storeUrls(ingredient);
+    const basePrice = lookupPrice(ingredient);
+    const STORES   = ['Tesco', "Sainsbury's", 'Asda', 'Morrisons', 'Aldi'];
+    // Slight per-store variation based on known patterns
+    const MULTS    = { 'Tesco': 1.00, "Sainsbury's": 1.07, 'Asda': 0.93, 'Morrisons': 0.97, 'Aldi': 0.82 };
+
+    return STORES.map(store => {
+      const price = basePrice !== null ? +(basePrice * MULTS[store]).toFixed(2) : null;
+      return {
+        store,
+        price,
+        price_str: price !== null ? `£${price.toFixed(2)}` : null,
+        url: urls[store],
+        product: ingredient,
+      };
+    });
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Planner tabs                                                             */
+  /* ---------------------------------------------------------------------- */
+  document.querySelectorAll('.planner-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.planner-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activePlannerTab = btn.dataset.ptab;
+      document.getElementById('ptabWeek').style.display     = activePlannerTab === 'week'     ? '' : 'none';
+      document.getElementById('ptabRecipes').style.display  = activePlannerTab === 'recipes'  ? '' : 'none';
+      document.getElementById('ptabShopping').style.display = activePlannerTab === 'shopping' ? '' : 'none';
+      if (activePlannerTab === 'shopping') renderShoppingList();
+    });
+  });
+
+  /* ---------------------------------------------------------------------- */
+  /* Budget bar                                                               */
+  /* ---------------------------------------------------------------------- */
+  function updateBudgetBar() {
+    const budget = parseFloat(budgetInput.value) || 0;
+    budgetTotal.textContent = '—';
+    if (budget > 0) {
+      budgetFill.style.width = '0%';
+    }
+  }
+
+  supermarketSelect.addEventListener('change', () => { buildWeekGrid(); buildRecipesGrid(recipesBrowseSearch.value, recipesCatFilter.value); });
+  peopleInput.addEventListener('input', () => { buildWeekGrid(); });
+  budgetInput.addEventListener('input', updateBudgetBar);
+
+  /* ---------------------------------------------------------------------- */
+  /* Portion multiplier                                                       */
+  /* ---------------------------------------------------------------------- */
+  function portionMultiplier(recipe) {
+    const people = Math.max(1, parseInt(peopleInput.value) || 2);
+    return people / (recipe.serves || 4);
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Week grid                                                                */
+  /* ---------------------------------------------------------------------- */
+  function buildWeekGrid() {
+    weekGrid.innerHTML = '';
+    DAYS.forEach((day, di) => {
+      const col = document.createElement('div');
+      col.className = 'day-col';
+      col.innerHTML = `<div class="day-heading">${esc(day)}</div>`;
+      MEALS.forEach((meal, mi) => {
+        const rid    = plan[di][mi];
+        const recipe = rid ? allRecipes.find(r => r.id === rid) : null;
+        const slot   = document.createElement('div');
+        slot.className = 'meal-slot' + (recipe ? ' filled' : '');
+        slot.dataset.day  = di;
+        slot.dataset.meal = mi;
+        if (recipe) {
+          const people = Math.max(1, parseInt(peopleInput.value) || 2);
+          const mult   = portionMultiplier(recipe);
+          const portionNote = mult !== 1
+            ? `×${mult % 1 === 0 ? mult : mult.toFixed(1)} recipe`
+            : `serves ${people}`;
+          slot.innerHTML = `
+            <div class="slot-type">${esc(meal)}</div>
+            ${recipe.thumb ? `<img src="${esc(recipe.thumb)}" alt="" style="width:100%;height:40px;object-fit:cover;border-radius:4px;margin:3px 0">` : `<div class="slot-emoji">${esc(recipe.emoji)}</div>`}
+            <div class="slot-name">${esc(recipe.name)}</div>
+            <div class="slot-price"><span style="font-size:9px;color:var(--muted)">${esc(portionNote)}</span></div>
+            <button class="slot-remove" data-day="${di}" data-meal="${mi}" title="Remove">✕</button>`;
+        } else {
+          slot.innerHTML = `
+            <div class="slot-type">${esc(meal)}</div>
+            <div class="slot-empty-hint">+ Add</div>`;
+        }
+        slot.addEventListener('click', e => {
+          if (e.target.classList.contains('slot-remove')) return;
+          openRecipePicker(parseInt(slot.dataset.day), parseInt(slot.dataset.meal), meal);
+        });
+        col.appendChild(slot);
+      });
+      weekGrid.appendChild(col);
+    });
+
+    weekGrid.querySelectorAll('.slot-remove').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        plan[parseInt(btn.dataset.day)][parseInt(btn.dataset.meal)] = null;
+        buildWeekGrid();
+      });
+    });
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Recipe picker modal                                                      */
+  /* ---------------------------------------------------------------------- */
+  function openRecipePicker(dayIdx, mealIdx, mealName) {
+    pickerTarget = { dayIdx, mealIdx };
+    recipePickerTitle.textContent = `Choose ${mealName} — ${DAYS[dayIdx]}`;
+    recipeSearchBar.value = '';
+    renderPickerGrid('');
+    recipePickerModal.classList.add('open');
+    setTimeout(() => recipeSearchBar.focus(), 60);
+  }
+
+  function renderPickerGrid(filter) {
+    const f = filter.toLowerCase();
+    const filtered = allRecipes.filter(r =>
+      !f || r.name.toLowerCase().includes(f) || r.category.toLowerCase().includes(f)
+    ).slice(0, 80);
+    const people = Math.max(1, parseInt(peopleInput.value) || 2);
+    recipePickerGrid.innerHTML = filtered.length
+      ? filtered.map(r => {
+          const mult = portionMultiplier(r);
+          const servesNote = mult === 1 ? `Serves ${r.serves}` : `For ${people} people`;
+          return `
+            <div class="recipe-pick-card" data-id="${esc(r.id)}">
+              ${r.thumb ? `<img class="rpc-thumb" src="${esc(r.thumb)}" alt="${esc(r.name)}" loading="lazy">` : `<div style="font-size:30px;text-align:center">${esc(r.emoji)}</div>`}
+              <div class="rpc-name">${esc(r.name)}</div>
+              <div class="rpc-serves">${esc(servesNote)}</div>
+            </div>`;
+        }).join('')
+      : '<p style="color:var(--muted);padding:20px;grid-column:1/-1">No recipes found.</p>';
+
+    recipePickerGrid.querySelectorAll('.recipe-pick-card').forEach(card => {
+      card.addEventListener('click', () => {
+        if (!pickerTarget) return;
+        const id = card.dataset.id;
+        plan[pickerTarget.dayIdx][pickerTarget.mealIdx] = id;
+        recipePickerModal.classList.remove('open');
+        // Pre-fetch details in background so shopping list is ready
+        fetchMealDetails(id).catch(() => {});
+        buildWeekGrid();
+      });
+    });
+  }
+
+  recipePickerClose.addEventListener('click', () => recipePickerModal.classList.remove('open'));
+  recipePickerModal.addEventListener('click', e => { if (e.target === recipePickerModal) recipePickerModal.classList.remove('open'); });
+  recipeSearchBar.addEventListener('input', () => renderPickerGrid(recipeSearchBar.value));
+
+  /* ---------------------------------------------------------------------- */
+  /* All recipes browse grid                                                  */
+  /* ---------------------------------------------------------------------- */
+  function buildRecipesGrid(search, category) {
+    const f = (search || '').toLowerCase();
+    const c = category || '';
+    let filtered = allRecipes.filter(r =>
+      (!f || r.name.toLowerCase().includes(f) || r.category.toLowerCase().includes(f)) &&
+      (!c || r.category === c)
+    ).slice(0, 120);
+
+    recipesGrid.innerHTML = filtered.map(r => `
+      <div class="recipe-card" style="cursor:pointer" data-id="${esc(r.id)}">
+        ${r.thumb ? `<img class="rc-thumb" src="${esc(r.thumb)}" alt="${esc(r.name)}" loading="lazy">` : ''}
+        <div class="rc-top">
+          <div class="rc-emoji">${esc(r.emoji)}</div>
+          <div class="rc-info">
+            <div class="rc-name" title="${esc(r.name)}">${esc(r.name)}</div>
+            <div class="rc-serves">${esc(r.category)}</div>
+          </div>
+        </div>
+      </div>`).join('') || '<p style="color:var(--muted);padding:20px">No recipes match.</p>';
+
+    recipesGrid.querySelectorAll('.recipe-card').forEach(card => {
+      card.addEventListener('click', () => {
+        // Quick-add to first empty slot or open picker
+        const id = card.dataset.id;
+        for (let di = 0; di < 7; di++) {
+          for (let mi = 0; mi < 3; mi++) {
+            if (!plan[di][mi]) {
+              plan[di][mi] = id;
+              fetchMealDetails(id).catch(() => {});
+              buildWeekGrid();
+              showPlannerTab('week');
+              return;
+            }
+          }
+        }
+        // All slots full — just switch to week view
+        showPlannerTab('week');
+      });
+    });
+  }
+
+  function showPlannerTab(tab) {
+    document.querySelectorAll('.planner-tab').forEach(b => b.classList.toggle('active', b.dataset.ptab === tab));
+    activePlannerTab = tab;
+    document.getElementById('ptabWeek').style.display     = tab === 'week'     ? '' : 'none';
+    document.getElementById('ptabRecipes').style.display  = tab === 'recipes'  ? '' : 'none';
+    document.getElementById('ptabShopping').style.display = tab === 'shopping' ? '' : 'none';
+  }
+
+  recipesBrowseSearch.addEventListener('input', () => buildRecipesGrid(recipesBrowseSearch.value, recipesCatFilter.value));
+  recipesCatFilter.addEventListener('change', () => buildRecipesGrid(recipesBrowseSearch.value, recipesCatFilter.value));
+
+  /* ---------------------------------------------------------------------- */
+  /* Shopping list with prices                                               */
+  /* ---------------------------------------------------------------------- */
+  async function renderShoppingList() {
+    // Collect planned meals
+    const plannedMeals = [];
+    plan.forEach((day, di) => {
+      day.forEach((rid, mi) => {
+        if (rid) plannedMeals.push({ id: rid, day: di, meal: mi });
+      });
+    });
+
+    if (!plannedMeals.length) {
+      shoppingList.innerHTML = `<div class="empty-planner"><div class="big-emoji">🛒</div><p>Add meals to your week planner to see your shopping list.</p></div>`;
+      shoppingListStatus.textContent = '';
+      shoppingIngredients = [];
+      return;
+    }
+
+    // Fetch any missing meal details (TheMealDB)
+    shoppingListStatus.textContent = 'Loading ingredient details…';
+    await Promise.all(plannedMeals.map(m => fetchMealDetails(m.id)));
+
+    // Aggregate ingredients across the plan
+    const ingMap = {};
+    plannedMeals.forEach(({ id, day: di, meal: mi }) => {
+      const details = mealDetails[id];
+      if (!details?.ingredients) return;
+      const recipe = allRecipes.find(r => r.id === id);
+      const mult   = recipe ? portionMultiplier(recipe) : 1;
+      const label  = `${DAYS[di]} ${MEALS[mi]}`;
+      details.ingredients.forEach(ing => {
+        const key = ing.name.toLowerCase().trim();
+        if (!key) return;
+        if (!ingMap[key]) ingMap[key] = { name: ing.name, measure: ing.measure, totalMult: 0, meals: [] };
+        ingMap[key].totalMult += mult;
+        ingMap[key].meals.push(label);
+      });
+    });
+
+    shoppingIngredients = Object.values(ingMap);
+
+    if (!shoppingIngredients.length) {
+      shoppingList.innerHTML = `<div class="empty-planner"><div class="big-emoji">🔄</div><p>Loading ingredient data — try again in a moment.</p></div>`;
+      shoppingListStatus.textContent = '';
+      return;
+    }
+
+    // Resolve prices synchronously from the static lookup
+    shoppingIngredients.forEach(ing => {
+      ing.prices = getIngredientPrices(ing.name);
+    });
+
+    const budget = parseFloat(budgetInput.value) || 0;
+    let cheapestTotal = 0;
+
+    const rows = shoppingIngredients.map((ing) => {
+      const multLabel = ing.totalMult !== 1
+        ? ` ×${ing.totalMult % 1 === 0 ? ing.totalMult : ing.totalMult.toFixed(1)}`
+        : '';
+      const mealsStr   = [...new Set(ing.meals)].join(', ');
+      const withPrice  = ing.prices.filter(p => p.price !== null);
+      const cheapPrice = withPrice.length ? Math.min(...withPrice.map(p => p.price)) : null;
+      if (cheapPrice !== null) cheapestTotal += cheapPrice * ing.totalMult;
+
+      const pillsHtml = ing.prices.map(p => {
+        const isChp    = p.price !== null && p.price === cheapPrice;
+        const priceStr = p.price !== null
+          ? `<span class="si-store-price">£${(p.price * ing.totalMult).toFixed(2)}</span>`
+          : `<span class="si-store-price" style="color:var(--muted)">visit</span>`;
+        return `
+          <a class="si-store-pill${isChp ? ' cheapest' : ''}" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">
+            <span class="si-store-name">${esc(p.store)}</span>
+            ${priceStr}
+            <span class="si-store-link">↗</span>
+          </a>`;
+      }).join('');
+
+      return `
+        <div class="shopping-item">
+          <input type="checkbox" class="si-check" />
+          <span class="si-name">
+            <strong>${esc(ing.name)}</strong>
+            ${ing.measure ? `<span style="color:var(--muted);font-size:12px"> — ${esc(ing.measure)}${esc(multLabel)}</span>` : (multLabel ? `<span style="color:var(--muted);font-size:12px">${esc(multLabel)}</span>` : '')}
+            <span style="font-size:11px;color:var(--muted);display:block">${esc(mealsStr)}</span>
+          </span>
+          <span class="si-prices-row">${pillsHtml}</span>
+        </div>`;
+    }).join('');
+
+    const overBudget = budget > 0 && cheapestTotal > budget;
+    shoppingList.innerHTML = rows + `
+      <div class="shopping-total">
+        <span>Estimated cheapest total</span>
+        <span class="total-val${overBudget ? ' over' : ''}">£${cheapestTotal.toFixed(2)}${overBudget ? ' ⚠ over budget' : ''}</span>
+      </div>`;
+
+    shoppingList.querySelectorAll('.si-check').forEach(cb => {
+      cb.addEventListener('change', function () {
+        this.closest('.shopping-item').classList.toggle('checked', this.checked);
+      });
+    });
+
+    if (budget > 0) {
+      const pct = Math.min(100, (cheapestTotal / budget) * 100);
+      budgetFill.style.width = pct + '%';
+      budgetFill.style.background = pct >= 100 ? 'var(--red)' : pct >= 80 ? '#ff9800' : 'var(--green)';
+      budgetTotal.textContent = `£${cheapestTotal.toFixed(2)}`;
+      budgetTotal.classList.toggle('over', pct >= 100);
+    }
+
+    shoppingListStatus.textContent = `${shoppingIngredients.length} ingredients · prices are estimates · click any store pill to buy`;
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* CSV download                                                             */
+  /* ---------------------------------------------------------------------- */
+  /* ---------------------------------------------------------------------- */
+  /* CSV helpers                                                             */
+  /* ---------------------------------------------------------------------- */
+  function csvRow(cells) {
+    return cells.map(c => `"${String(c ?? '').replace(/"/g, '""')}"`).join(',');
+  }
+
+  // Parse a single CSV line respecting quoted fields
+  function parseCSVLine(line) {
+    const result = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (inQ) {
+        if (ch === '"' && line[i + 1] === '"') { cur += '"'; i++; }
+        else if (ch === '"') inQ = false;
+        else cur += ch;
+      } else {
+        if (ch === '"') inQ = true;
+        else if (ch === ',') { result.push(cur); cur = ''; }
+        else cur += ch;
+      }
+    }
+    result.push(cur);
+    return result;
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Download shopping list CSV (with embedded meal plan for re-import)      */
+  /* ---------------------------------------------------------------------- */
+  function downloadShoppingList() {
+    // Build a plan-aware CSV: first a MEAL_PLAN section, then SHOPPING_LIST
+    const lines = [];
+
+    // ── Section 1: meal plan ──────────────────────────────────────────────
+    lines.push(csvRow(['MEAL_PLAN', '', '', '']));
+    lines.push(csvRow(['Day', 'Meal', 'Recipe ID', 'Recipe Name']));
+    plan.forEach((day, di) => {
+      day.forEach((rid, mi) => {
+        if (!rid) return;
+        const recipe = allRecipes.find(r => r.id === rid);
+        lines.push(csvRow([DAYS[di], MEALS[mi], rid, recipe?.name || rid]));
+      });
+    });
+
+    lines.push('');  // blank separator
+
+    // ── Section 2: shopping list ──────────────────────────────────────────
+    if (!shoppingIngredients.length) {
+      lines.push(csvRow(['SHOPPING_LIST', '', '', '']));
+      lines.push(csvRow(['No ingredients — view the Shopping List tab first to generate prices.']));
+    } else {
+      const STORES = ['Tesco', "Sainsbury's", 'Asda', 'Morrisons', 'Aldi'];
+      lines.push(csvRow(['SHOPPING_LIST', '', '', '']));
+      lines.push(csvRow(['Ingredient', 'Measure', 'Portions', 'Meals', ...STORES.flatMap(s => [s + ' Price', s + ' URL'])]));
+      shoppingIngredients.forEach(ing => {
+        const storeMap = {};
+        (ing.prices || []).forEach(p => { storeMap[p.store] = p; });
+        const multFmt = ing.totalMult !== 1 ? `×${ing.totalMult.toFixed(2)}` : '×1';
+        lines.push(csvRow([
+          ing.name, ing.measure, multFmt,
+          [...new Set(ing.meals)].join('; '),
+          ...STORES.flatMap(s => [
+            storeMap[s]?.price != null ? `£${(storeMap[s].price * ing.totalMult).toFixed(2)}` : '',
+            storeMap[s]?.url || '',
+          ]),
+        ]));
+      });
+    }
+
+    const blob = new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `meal-plan-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Import CSV — restore meal plan from a previously downloaded file        */
+  /* ---------------------------------------------------------------------- */
+  function importFromCSV(file) {
+    const reader = new FileReader();
+    reader.onload = async function (e) {
+      const text  = e.target.result.replace(/^﻿/, ''); // strip BOM
+      const lines = text.split(/\r?\n/);
+
+      let section = '';
+      let importedCount = 0;
+
+      // Clear current plan
+      plan.forEach(d => d.fill(null));
+
+      for (const raw of lines) {
+        const cols = parseCSVLine(raw);
+        if (!cols.length || (cols.length === 1 && !cols[0].trim())) continue;
+
+        const first = (cols[0] || '').trim();
+
+        if (first === 'MEAL_PLAN')     { section = 'plan';     continue; }
+        if (first === 'SHOPPING_LIST') { section = 'shopping'; continue; }
+        if (first === 'Day' || first === 'Ingredient') continue; // header rows
+
+        if (section === 'plan') {
+          const [dayStr, mealStr, recipeId, recipeName] = cols.map(c => (c || '').trim());
+          const di = DAYS.indexOf(dayStr);
+          const mi = MEALS.indexOf(mealStr);
+          if (di < 0 || mi < 0 || !recipeId) continue;
+
+          plan[di][mi] = recipeId;
+          importedCount++;
+
+          // If this recipe isn't in allRecipes yet, add a placeholder so the
+          // grid renders immediately; full details are fetched in the background.
+          if (!allRecipes.find(r => r.id === recipeId)) {
+            allRecipes.push({
+              id:       recipeId,
+              name:     recipeName || recipeId,
+              thumb:    `https://www.themealdb.com/images/media/meals/${recipeId}.jpg`,
+              category: 'Imported',
+              emoji:    '🍽️',
+              serves:   4,
+              ingredients: null,
+            });
+          }
+          // Prefetch meal details in background
+          fetchMealDetails(recipeId).catch(() => {});
+        }
+      }
+
+      if (importedCount === 0) {
+        alert('No meal plan data found in this CSV.\nMake sure you import a file downloaded from this planner.');
+        return;
+      }
+
+      buildWeekGrid();
+      showPlannerTab('week');
+      shoppingListStatus.textContent = `Imported ${importedCount} meal slot${importedCount !== 1 ? 's' : ''} — view the Shopping List tab to see prices.`;
+      shoppingIngredients = []; // invalidate old shopping list
+    };
+    reader.readAsText(file);
+  }
+
+  downloadListBtn.addEventListener('click', downloadShoppingList);
+
+  document.getElementById('importCsvInput').addEventListener('change', function () {
+    if (this.files[0]) {
+      importFromCSV(this.files[0]);
+      this.value = ''; // reset so the same file can be imported again
+    }
+  });
+
+})();
 </script>
 
 <script>

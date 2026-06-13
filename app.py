@@ -18,6 +18,8 @@ from bs4 import BeautifulSoup
 
 from wordmatch import word_to_plate_patterns, plate_to_words, is_english_word, load_dictionary, plate_match_score
 from scraper import search_all_sites, _cf_get, _abs_url, _FAST_SCRAPERS
+from meals import RECIPES, SUPERMARKETS
+from groceries import search_ingredient_prices, STORE_ORDER
 
 logging.basicConfig(
     level=logging.INFO,
@@ -147,6 +149,24 @@ def api_search():
     _cache_set(cache_key, unique)
     logger.info('Returning %d unique results for %s', len(unique), cache_key)
     return jsonify({'results': unique, 'from_cache': False, 'patterns_searched': len(patterns)})
+
+
+@app.route('/api/meal-planner/recipes')
+def api_meal_recipes():
+    return jsonify({'recipes': RECIPES, 'supermarkets': SUPERMARKETS})
+
+
+@app.route('/api/meal-planner/prices')
+def api_ingredient_prices():
+    """Return live supermarket prices for a grocery ingredient query.
+
+    ?q=beef+mince  →  [{store, price, price_str, url, product}, …]
+    """
+    query = request.args.get('q', '').strip()
+    if not query or len(query) > 100:
+        return jsonify({'error': 'Provide ?q=ingredient (max 100 chars)', 'results': []}), 400
+    results = search_ingredient_prices(query)
+    return jsonify({'results': results, 'stores': STORE_ORDER})
 
 
 @app.route('/api/status')
