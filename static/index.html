@@ -1088,7 +1088,8 @@
       <div class="shopping-list-wrap">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
           <span style="font-size:13px;color:var(--muted)" id="shoppingListStatus"></span>
-          <div style="display:flex;gap:8px;align-items:center">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <button class="download-btn" id="downloadPdfBtn">&#128438; Save as PDF</button>
             <button class="download-btn" id="downloadListBtn">&#11015; Download CSV</button>
             <label class="download-btn" style="cursor:pointer" title="Import a previously saved meal plan CSV">
               &#11014; Import CSV
@@ -1618,6 +1619,7 @@
   const recipePickerTitle = document.getElementById('recipePickerTitle');
   const recipeSearchBar   = document.getElementById('recipeSearchBar');
   const downloadListBtn   = document.getElementById('downloadListBtn');
+  const downloadPdfBtn    = document.getElementById('downloadPdfBtn');
   const recipesBrowseSearch = document.getElementById('recipesBrowseSearch');
   const recipesCatFilter    = document.getElementById('recipesCatFilter');
   const shoppingListStatus  = document.getElementById('shoppingListStatus');
@@ -1692,7 +1694,8 @@
         const meas = (meal[`strMeasure${i}`] || '').trim();
         if (name) ingredients.push({ name, measure: meas });
       }
-      const details = { id, name: meal.strMeal, thumb: meal.strMealThumb, ingredients };
+      const details = { id, name: meal.strMeal, thumb: meal.strMealThumb,
+        source: meal.strSource || '', youtube: meal.strYoutube || '', ingredients };
       mealDetails[id] = details;
       return details;
     } catch (_) { return null; }
@@ -1810,28 +1813,26 @@
     };
   }
 
-  // Look up a price from PRICE_DB using fuzzy substring matching
+  // Look up a price from PRICE_DB using fuzzy substring matching; returns {price, searchKey}
   function lookupPrice(ingredient) {
     const key = ingredient.toLowerCase().trim();
-    // Exact match
-    if (PRICE_DB[key] !== undefined) return PRICE_DB[key];
-    // Try longest substring match
-    let best = null, bestLen = 0;
+    if (PRICE_DB[key] !== undefined) return { price: PRICE_DB[key], searchKey: key };
+    let best = null, bestLen = 0, bestKey = key;
     for (const [k, v] of Object.entries(PRICE_DB)) {
       if ((key.includes(k) || k.includes(key)) && k.length > bestLen) {
-        best = v; bestLen = k.length;
+        best = v; bestLen = k.length; bestKey = k;
       }
     }
-    return best;
+    return { price: best, searchKey: bestKey };
   }
 
   // Build price results for an ingredient (synchronous, no network needed)
   function getIngredientPrices(ingredient) {
-    const urls     = storeUrls(ingredient);
-    const basePrice = lookupPrice(ingredient);
-    const STORES   = ['Tesco', "Sainsbury's", 'Asda', 'Morrisons', 'Aldi'];
-    // Slight per-store variation based on known patterns
-    const MULTS    = { 'Tesco': 1.00, "Sainsbury's": 1.07, 'Asda': 0.93, 'Morrisons': 0.97, 'Aldi': 0.82 };
+    const { price: basePrice, searchKey } = lookupPrice(ingredient);
+    // Use the matched PRICE_DB key as the search term — it's more specific than raw TheMealDB names
+    const urls   = storeUrls(searchKey);
+    const STORES = ['Tesco', "Sainsbury's", 'Asda', 'Morrisons', 'Aldi'];
+    const MULTS  = { 'Tesco': 1.00, "Sainsbury's": 1.07, 'Asda': 0.93, 'Morrisons': 0.97, 'Aldi': 0.82 };
 
     return STORES.map(store => {
       const price = basePrice !== null ? +(basePrice * MULTS[store]).toFixed(2) : null;
@@ -1840,7 +1841,7 @@
         price,
         price_str: price !== null ? `£${price.toFixed(2)}` : null,
         url: urls[store],
-        product: ingredient,
+        product: searchKey,
       };
     });
   }
@@ -1871,7 +1872,11 @@
     }
   }
 
-  supermarketSelect.addEventListener('change', () => { buildWeekGrid(); buildRecipesGrid(recipesBrowseSearch.value, recipesCatFilter.value); });
+  supermarketSelect.addEventListener('change', () => {
+    buildWeekGrid();
+    buildRecipesGrid(recipesBrowseSearch.value, recipesCatFilter.value);
+    if (shoppingIngredients.length) renderShoppingList();
+  });
   peopleInput.addEventListener('input', () => { buildWeekGrid(); });
   budgetInput.addEventListener('input', updateBudgetBar);
 
@@ -1881,6 +1886,12 @@
   function portionMultiplier(recipe) {
     const people = Math.max(1, parseInt(peopleInput.value) || 2);
     return people / (recipe.serves || 4);
+  }
+
+  // How many full units to buy — always at least 1, rounded up for larger groups
+  function shoppingQty(recipe) {
+    const people = Math.max(1, parseInt(peopleInput.value) || 2);
+    return Math.max(1, Math.ceil(people / (recipe.serves || 4)));
   }
 
   /* ---------------------------------------------------------------------- */
@@ -2066,7 +2077,7 @@
       const details = mealDetails[id];
       if (!details?.ingredients) return;
       const recipe = allRecipes.find(r => r.id === id);
-      const mult   = recipe ? portionMultiplier(recipe) : 1;
+      const mult   = recipe ? shoppingQty(recipe) : 1;
       const label  = `${DAYS[di]} ${MEALS[mi]}`;
       details.ingredients.forEach(ing => {
         const key = ing.name.toLowerCase().trim();
@@ -2090,48 +2101,59 @@
       ing.prices = getIngredientPrices(ing.name);
     });
 
-    const budget = parseFloat(budgetInput.value) || 0;
-    let cheapestTotal = 0;
+    const budget       = parseFloat(budgetInput.value) || 0;
+    const selectedStore = supermarketSelect.value; // 'cheapest' or a store name
+    let storeTotal = 0;
+
+    // Pick the single store entry to display for each ingredient
+    function pickStore(ing) {
+      if (selectedStore === 'cheapest') {
+        const withPrice = ing.prices.filter(p => p.price !== null);
+        if (!withPrice.length) return null;
+        return withPrice.reduce((a, b) => a.price <= b.price ? a : b);
+      }
+      return ing.prices.find(p => p.store === selectedStore) || null;
+    }
 
     const rows = shoppingIngredients.map((ing) => {
-      const multLabel = ing.totalMult !== 1
-        ? ` ×${ing.totalMult % 1 === 0 ? ing.totalMult : ing.totalMult.toFixed(1)}`
-        : '';
-      const mealsStr   = [...new Set(ing.meals)].join(', ');
-      const withPrice  = ing.prices.filter(p => p.price !== null);
-      const cheapPrice = withPrice.length ? Math.min(...withPrice.map(p => p.price)) : null;
-      if (cheapPrice !== null) cheapestTotal += cheapPrice * ing.totalMult;
+      const mealsStr = [...new Set(ing.meals)].join(', ');
+      const picked   = pickStore(ing);
+      const lineTotal = picked?.price != null ? picked.price * ing.totalMult : null;
+      if (lineTotal !== null) storeTotal += lineTotal;
 
-      const pillsHtml = ing.prices.map(p => {
-        const isChp    = p.price !== null && p.price === cheapPrice;
-        const priceStr = p.price !== null
-          ? `<span class="si-store-price">£${(p.price * ing.totalMult).toFixed(2)}</span>`
-          : `<span class="si-store-price" style="color:var(--muted)">visit</span>`;
-        return `
-          <a class="si-store-pill${isChp ? ' cheapest' : ''}" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">
-            <span class="si-store-name">${esc(p.store)}</span>
-            ${priceStr}
+      const storeName  = selectedStore === 'cheapest' ? (picked?.store || '') : selectedStore;
+      const priceLabel = lineTotal !== null
+        ? `£${lineTotal.toFixed(2)}`
+        : 'n/a';
+      const pillHtml = picked
+        ? `<a class="si-store-pill cheapest" href="${esc(picked.url)}" target="_blank" rel="noopener noreferrer">
+            <span class="si-store-name">${esc(storeName)}</span>
+            <span class="si-store-price">${esc(priceLabel)}</span>
             <span class="si-store-link">↗</span>
-          </a>`;
-      }).join('');
+           </a>`
+        : `<span class="si-store-pill" style="opacity:.5">no price</span>`;
+
+      const qtyNote = ing.totalMult > 1
+        ? `<span style="color:var(--muted);font-size:12px"> — ${ing.totalMult} pack${ing.totalMult > 1 ? 's' : ''}</span>`
+        : '';
 
       return `
         <div class="shopping-item">
           <input type="checkbox" class="si-check" />
           <span class="si-name">
-            <strong>${esc(ing.name)}</strong>
-            ${ing.measure ? `<span style="color:var(--muted);font-size:12px"> — ${esc(ing.measure)}${esc(multLabel)}</span>` : (multLabel ? `<span style="color:var(--muted);font-size:12px">${esc(multLabel)}</span>` : '')}
+            <strong>${esc(ing.name)}</strong>${qtyNote}
             <span style="font-size:11px;color:var(--muted);display:block">${esc(mealsStr)}</span>
           </span>
-          <span class="si-prices-row">${pillsHtml}</span>
+          <span class="si-prices-row">${pillHtml}</span>
         </div>`;
     }).join('');
 
-    const overBudget = budget > 0 && cheapestTotal > budget;
+    const overBudget = budget > 0 && storeTotal > budget;
+    const storeLabelFull = selectedStore === 'cheapest' ? 'Best available price' : selectedStore;
     shoppingList.innerHTML = rows + `
       <div class="shopping-total">
-        <span>Estimated cheapest total</span>
-        <span class="total-val${overBudget ? ' over' : ''}">£${cheapestTotal.toFixed(2)}${overBudget ? ' ⚠ over budget' : ''}</span>
+        <span>Estimated total · ${esc(storeLabelFull)}</span>
+        <span class="total-val${overBudget ? ' over' : ''}">£${storeTotal.toFixed(2)}${overBudget ? ' ⚠ over budget' : ''}</span>
       </div>`;
 
     shoppingList.querySelectorAll('.si-check').forEach(cb => {
@@ -2141,14 +2163,14 @@
     });
 
     if (budget > 0) {
-      const pct = Math.min(100, (cheapestTotal / budget) * 100);
+      const pct = Math.min(100, (storeTotal / budget) * 100);
       budgetFill.style.width = pct + '%';
       budgetFill.style.background = pct >= 100 ? 'var(--red)' : pct >= 80 ? '#ff9800' : 'var(--green)';
-      budgetTotal.textContent = `£${cheapestTotal.toFixed(2)}`;
+      budgetTotal.textContent = `£${storeTotal.toFixed(2)}`;
       budgetTotal.classList.toggle('over', pct >= 100);
     }
 
-    shoppingListStatus.textContent = `${shoppingIngredients.length} ingredients · prices are estimates · click any store pill to buy`;
+    shoppingListStatus.textContent = `${shoppingIngredients.length} ingredients · prices are estimates · click any item to buy`;
   }
 
   /* ---------------------------------------------------------------------- */
@@ -2182,47 +2204,143 @@
   }
 
   /* ---------------------------------------------------------------------- */
+  /* Ingredient category helper                                              */
+  /* ---------------------------------------------------------------------- */
+  const _ING_CATEGORIES = [
+    ['Meat & Fish',        /beef|chicken|lamb|pork|bacon|sausage|chorizo|mince|steak|salmon|cod|haddock|fish|prawn|shrimp|tuna|braising/i],
+    ['Dairy & Eggs',       /egg|milk|butter|cream|cheddar|cheese|parmesan|mozzarella|feta|ricotta|yogurt|creme fraiche/i],
+    ['Fruit & Vegetables', /onion|garlic|ginger|tomato|potato|carrot|broccoli|spinach|mushroom|pepper|courgette|zucchini|aubergine|leek|celery|parsnip|peas|beans|asparagus|lemon|lime|orange|apple|banana|avocado|cucumber|lettuce|kale|pak choi|corn|sweetcorn|chilli|cherry|plum|berry|berries|fruit|veg|cabbage|cauliflower|turnip|radish|herb|parsley|coriander|basil|thyme|rosemary|sage/i],
+    ['Tins & Jars',        /chopped tomatoes|canned|passata|coconut milk|coconut cream|kidney bean|black bean|chickpea|lentil|baked beans|mushy peas|cannellini|olives|capers|anchovies|sardines|tomato puree|tomato paste|stock cube|broth/i],
+    ['Oils & Sauces',      /oil|sauce|vinegar|ketchup|mayo|mustard|pesto|tahini|harissa|worcestershire|soy|fish sauce|oyster sauce|hoisin/i],
+    ['Dry Goods & Pasta',  /spaghetti|pasta|penne|fusilli|tagliatelle|lasagne|noodle|rice|flour|breadcrumb|oat|bread|pitta|tortilla|wrap/i],
+    ['Spices & Baking',    /chilli powder|cumin|coriander powder|paprika|turmeric|garam masala|curry powder|cinnamon|nutmeg|oregano|bay|cardamom|cloves|star anise|fennel|baking powder|baking soda|bicarbonate|yeast|cocoa|chocolate|vanilla|sugar|salt|honey|maple|syrup/i],
+    ['Other',              /.*/],
+  ];
+
+  function ingredientCategory(name) {
+    for (const [cat, re] of _ING_CATEGORIES) {
+      if (re.test(name)) return cat;
+    }
+    return 'Other';
+  }
+
+  /* ---------------------------------------------------------------------- */
   /* Download shopping list CSV (with embedded meal plan for re-import)      */
   /* ---------------------------------------------------------------------- */
   function downloadShoppingList() {
-    // Build a plan-aware CSV: first a MEAL_PLAN section, then SHOPPING_LIST
-    const lines = [];
+    const people        = Math.max(1, parseInt(peopleInput.value) || 2);
+    const today         = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    const selectedStore = supermarketSelect.value;
+    const storeName     = selectedStore === 'cheapest' ? 'Best Price' : selectedStore;
+    const lines         = [];
+    const blank         = () => lines.push('');
 
-    // ── Section 1: meal plan ──────────────────────────────────────────────
-    lines.push(csvRow(['MEAL_PLAN', '', '', '']));
+    function csvPickStore(ing) {
+      if (selectedStore === 'cheapest') {
+        const wp = (ing.prices || []).filter(p => p.price !== null);
+        return wp.length ? wp.reduce((a, b) => a.price <= b.price ? a : b) : null;
+      }
+      return (ing.prices || []).find(p => p.store === selectedStore) || null;
+    }
+
+    // ── Header ────────────────────────────────────────────────────────────
+    lines.push(csvRow(['PLATES MEAL PLANNER', '', '', '']));
+    lines.push(csvRow([`Generated: ${today}`, `For: ${people} ${people === 1 ? 'person' : 'people'}`, `Store: ${storeName}`, '']));
+    blank();
+
+    // ── Section 1: Meal Plan (for re-import) ─────────────────────────────
+    lines.push(csvRow(['MEAL PLAN', '', '', '']));
     lines.push(csvRow(['Day', 'Meal', 'Recipe ID', 'Recipe Name']));
+    let hasMeals = false;
     plan.forEach((day, di) => {
       day.forEach((rid, mi) => {
         if (!rid) return;
+        hasMeals = true;
         const recipe = allRecipes.find(r => r.id === rid);
         lines.push(csvRow([DAYS[di], MEALS[mi], rid, recipe?.name || rid]));
       });
     });
+    if (!hasMeals) lines.push(csvRow(['(no meals planned)', '', '', '']));
+    blank();
 
-    lines.push('');  // blank separator
+    // ── Section 2: Shopping List ──────────────────────────────────────────
+    lines.push(csvRow(['SHOPPING LIST', '', '', '']));
+    lines.push(csvRow([`Shopping at: ${storeName}`, '', '', '']));
 
-    // ── Section 2: shopping list ──────────────────────────────────────────
     if (!shoppingIngredients.length) {
-      lines.push(csvRow(['SHOPPING_LIST', '', '', '']));
-      lines.push(csvRow(['No ingredients — view the Shopping List tab first to generate prices.']));
+      lines.push(csvRow(['  Open the Shopping List tab first to generate prices, then re-download.', '', '', '']));
     } else {
-      const STORES = ['Tesco', "Sainsbury's", 'Asda', 'Morrisons', 'Aldi'];
-      lines.push(csvRow(['SHOPPING_LIST', '', '', '']));
-      lines.push(csvRow(['Ingredient', 'Measure', 'Portions', 'Meals', ...STORES.flatMap(s => [s + ' Price', s + ' URL'])]));
+      const byCategory = {};
       shoppingIngredients.forEach(ing => {
-        const storeMap = {};
-        (ing.prices || []).forEach(p => { storeMap[p.store] = p; });
-        const multFmt = ing.totalMult !== 1 ? `×${ing.totalMult.toFixed(2)}` : '×1';
+        const cat = ingredientCategory(ing.name);
+        if (!byCategory[cat]) byCategory[cat] = [];
+        byCategory[cat].push(ing);
+      });
+      const catOrder = _ING_CATEGORIES.map(([cat]) => cat);
+      let runningTotal = 0;
+
+      catOrder.forEach(cat => {
+        if (!byCategory[cat]?.length) return;
+        byCategory[cat].sort((a, b) => a.name.localeCompare(b.name));
+        blank();
+        lines.push(csvRow([cat.toUpperCase(), '', '', '']));
+        lines.push(csvRow(['Ingredient', 'Qty to Buy', 'Price', 'Used In']));
+
+        byCategory[cat].forEach(ing => {
+          const picked   = csvPickStore(ing);
+          const qty      = ing.totalMult;
+          const qtyLabel = qty === 1 ? '1 pack' : `${qty} packs`;
+          const price    = picked?.price != null ? picked.price * qty : null;
+          if (price !== null) runningTotal += price;
+          lines.push(csvRow([
+            ing.name,
+            qtyLabel,
+            price !== null ? `£${price.toFixed(2)}` : 'n/a',
+            [...new Set(ing.meals)].join(', '),
+          ]));
+        });
+      });
+
+      blank();
+      lines.push(csvRow(['ESTIMATED TOTAL', `£${runningTotal.toFixed(2)}`, storeName, '']));
+    }
+    blank();
+
+    // ── Section 3: Store Links ────────────────────────────────────────────
+    if (shoppingIngredients.length) {
+      lines.push(csvRow(['STORE LINKS', '', '', '']));
+      lines.push(csvRow(['Ingredient', 'Price', 'Link to Buy', '']));
+      shoppingIngredients.slice().sort((a, b) => a.name.localeCompare(b.name)).forEach(ing => {
+        const picked = csvPickStore(ing);
         lines.push(csvRow([
-          ing.name, ing.measure, multFmt,
-          [...new Set(ing.meals)].join('; '),
-          ...STORES.flatMap(s => [
-            storeMap[s]?.price != null ? `£${(storeMap[s].price * ing.totalMult).toFixed(2)}` : '',
-            storeMap[s]?.url || '',
-          ]),
+          ing.name,
+          picked?.price != null ? `£${(picked.price * ing.totalMult).toFixed(2)}` : 'visit',
+          picked?.url || '',
+          '',
         ]));
       });
+      blank();
     }
+
+    // ── Section 4: Recipe Links ───────────────────────────────────────────
+    lines.push(csvRow(['RECIPE LINKS', '', '', '']));
+    lines.push(csvRow(['Recipe', 'TheMealDB Page', 'Original Source', 'YouTube']));
+    let recipeRowAdded = false;
+    plan.forEach((day, di) => {
+      day.forEach((rid, mi) => {
+        if (!rid) return;
+        recipeRowAdded = true;
+        const recipe  = allRecipes.find(r => r.id === rid);
+        const details = mealDetails[rid];
+        lines.push(csvRow([
+          recipe?.name || rid,
+          `https://www.themealdb.com/meal/${rid}`,
+          details?.source  || '',
+          details?.youtube || '',
+        ]));
+      });
+    });
+    if (!recipeRowAdded) lines.push(csvRow(['(no meals planned)', '', '', '']));
 
     const blob = new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
     const url  = URL.createObjectURL(blob);
@@ -2233,6 +2351,147 @@
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* PDF download — opens a print-ready page, user saves via Ctrl+P         */
+  /* ---------------------------------------------------------------------- */
+  function downloadPDF() {
+    if (!shoppingIngredients.length) {
+      alert('View the Shopping List tab first to load your ingredients, then save as PDF.');
+      return;
+    }
+
+    const people        = Math.max(1, parseInt(peopleInput.value) || 2);
+    const today         = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const selectedStore = supermarketSelect.value;
+    const storeName     = selectedStore === 'cheapest' ? 'Best Available Price' : selectedStore;
+
+    function pdfPickStore(ing) {
+      if (selectedStore === 'cheapest') {
+        const wp = (ing.prices || []).filter(p => p.price !== null);
+        return wp.length ? wp.reduce((a, b) => a.price <= b.price ? a : b) : null;
+      }
+      return (ing.prices || []).find(p => p.store === selectedStore) || null;
+    }
+
+    // Collect meals
+    const mealRows = [];
+    plan.forEach((day, di) => {
+      day.forEach((rid, mi) => {
+        if (!rid) return;
+        const recipe = allRecipes.find(r => r.id === rid);
+        mealRows.push({ day: DAYS[di], meal: MEALS[mi], name: recipe?.name || rid, id: rid });
+      });
+    });
+
+    // Group ingredients by category
+    const byCategory = {};
+    shoppingIngredients.forEach(ing => {
+      const cat = ingredientCategory(ing.name);
+      if (!byCategory[cat]) byCategory[cat] = [];
+      byCategory[cat].push(ing);
+    });
+    const catOrder = _ING_CATEGORIES.map(([cat]) => cat).filter(c => byCategory[c]?.length);
+
+    let runningTotal = 0;
+    let ingRowsHtml = '';
+    catOrder.forEach(cat => {
+      const items = byCategory[cat].slice().sort((a, b) => a.name.localeCompare(b.name));
+      ingRowsHtml += `<tr class="cat-head"><td colspan="3">${cat}</td></tr>`;
+      items.forEach(ing => {
+        const picked   = pdfPickStore(ing);
+        const qty      = ing.totalMult;
+        const price    = picked?.price != null ? picked.price * qty : null;
+        if (price !== null) runningTotal += price;
+        const qtyLabel = qty === 1 ? '' : `×${qty}`;
+        const priceStr = price !== null ? `£${price.toFixed(2)}` : '—';
+        const url      = picked?.url || '';
+        const priceCell = url
+          ? `<a href="${url}" target="_blank">${priceStr}</a>`
+          : priceStr;
+        ingRowsHtml += `<tr>
+          <td><span class="box"></span> ${ing.name}${qtyLabel ? ` <small>${qtyLabel}</small>` : ''}</td>
+          <td class="used">${[...new Set(ing.meals)].join(', ')}</td>
+          <td class="price">${priceCell}</td>
+        </tr>`;
+      });
+    });
+
+    let recipeLinksHtml = '';
+    mealRows.forEach(m => {
+      const details   = mealDetails[m.id];
+      const mealDbUrl = `https://www.themealdb.com/meal/${m.id}`;
+      const links     = [];
+      if (details?.source)  links.push(`<a href="${details.source}" target="_blank">Recipe</a>`);
+      links.push(`<a href="${mealDbUrl}" target="_blank">TheMealDB</a>`);
+      if (details?.youtube) links.push(`<a href="${details.youtube}" target="_blank">YouTube</a>`);
+      recipeLinksHtml += `<tr>
+        <td>${m.day} <span class="meal-label">${m.meal}</span></td>
+        <td>${m.name}</td>
+        <td>${links.join(' · ')}</td>
+      </tr>`;
+    });
+
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Shopping List — ${today}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; color: #111; padding: 24px 32px; max-width: 780px; margin: auto; }
+  h1 { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+  .meta { color: #555; font-size: 12px; margin-bottom: 20px; }
+  h2 { font-size: 14px; font-weight: 700; margin: 22px 0 6px; border-bottom: 2px solid #111; padding-bottom: 4px; text-transform: uppercase; letter-spacing: .05em; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
+  td { padding: 5px 6px; vertical-align: top; border-bottom: 1px solid #e8e8e8; }
+  tr.cat-head td { font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: #555; background: #f5f5f5; padding: 6px 6px 4px; border-bottom: none; }
+  .price { text-align: right; white-space: nowrap; font-weight: 600; width: 72px; }
+  .used { color: #666; font-size: 11px; width: 200px; }
+  .box { display: inline-block; width: 11px; height: 11px; border: 1.5px solid #555; border-radius: 2px; vertical-align: middle; margin-right: 5px; }
+  .total-row td { font-weight: 700; font-size: 14px; border-top: 2px solid #111; border-bottom: none; padding-top: 8px; }
+  .meal-label { font-size: 11px; color: #888; }
+  a { color: #0057a8; text-decoration: none; }
+  small { color: #888; font-size: 11px; }
+  @media print {
+    body { padding: 12px 16px; }
+    a { color: #111; }
+    @page { margin: 12mm 10mm; }
+  }
+</style>
+</head>
+<body>
+<h1>Shopping List</h1>
+<p class="meta">${today} &nbsp;·&nbsp; ${people} ${people === 1 ? 'person' : 'people'} &nbsp;·&nbsp; ${storeName}</p>
+
+${mealRows.length ? `<h2>This Week's Meals</h2>
+<table>
+${mealRows.map(m => `<tr><td><strong>${m.day}</strong> <span class="meal-label">${m.meal}</span></td><td>${m.name}</td></tr>`).join('')}
+</table>` : ''}
+
+<h2>Shopping List</h2>
+<table>
+  <colgroup><col><col style="width:190px"><col style="width:72px"></colgroup>
+  ${ingRowsHtml}
+  <tr class="total-row">
+    <td colspan="2">Estimated Total · ${storeName}</td>
+    <td class="price">£${runningTotal.toFixed(2)}</td>
+  </tr>
+</table>
+
+${recipeLinksHtml ? `<h2>Recipe Links</h2>
+<table>
+${recipeLinksHtml}
+</table>` : ''}
+</body>
+</html>`;
+
+    const win = window.open('', '_blank', 'width=820,height=900');
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    setTimeout(() => win.print(), 400);
   }
 
   /* ---------------------------------------------------------------------- */
@@ -2256,8 +2515,8 @@
 
         const first = (cols[0] || '').trim();
 
-        if (first === 'MEAL_PLAN')     { section = 'plan';     continue; }
-        if (first === 'SHOPPING_LIST') { section = 'shopping'; continue; }
+        if (first === 'MEAL_PLAN' || first === 'MEAL PLAN')         { section = 'plan';     continue; }
+        if (first === 'SHOPPING_LIST' || first === 'SHOPPING LIST') { section = 'shopping'; continue; }
         if (first === 'Day' || first === 'Ingredient') continue; // header rows
 
         if (section === 'plan') {
@@ -2301,6 +2560,7 @@
   }
 
   downloadListBtn.addEventListener('click', downloadShoppingList);
+  downloadPdfBtn.addEventListener('click', downloadPDF);
 
   document.getElementById('importCsvInput').addEventListener('change', function () {
     if (this.files[0]) {
