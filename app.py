@@ -60,7 +60,9 @@ def _cache_set(key: str, data: list) -> None:
 
 @app.route('/')
 def index():
-    return send_from_directory('static', 'index.html')
+    resp = send_from_directory('static', 'index.html')
+    resp.headers['Cache-Control'] = 'no-store'
+    return resp
 
 
 @app.route('/api/search')
