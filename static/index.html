@@ -44,8 +44,9 @@
     .header-top {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
       margin-bottom: 14px;
+      flex-wrap: wrap;
     }
 
     .logo-plate {
@@ -544,20 +545,21 @@
     /* ------------------------------------------------------------------ */
     .login-btn {
       margin-left: auto;
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--muted);
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      color: #000;
       cursor: pointer;
-      font-size: 12px;
-      font-weight: 700;
+      font-size: 13px;
+      font-weight: 800;
       letter-spacing: .5px;
-      padding: 7px 16px;
-      transition: color .15s, border-color .15s, background .15s;
+      padding: 9px 20px;
+      transition: opacity .15s, background .15s;
       white-space: nowrap;
+      flex-shrink: 0;
     }
-    .login-btn:hover { color: var(--accent); border-color: var(--accent); }
-    .login-btn.logged-in { color: var(--accent); border-color: rgba(245,196,0,.4); background: rgba(245,196,0,.08); }
+    .login-btn:hover { opacity: .85; }
+    .login-btn.logged-in { background: rgba(245,196,0,.15); color: var(--accent); border: 1px solid rgba(245,196,0,.4); }
 
     /* ------------------------------------------------------------------ */
     /* Login modal                                                          */
