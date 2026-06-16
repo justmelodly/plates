@@ -1,0 +1,13 @@
+[phases.setup]
+nixPkgs = [
+  "glib", "nss", "nspr", "atk", "cups", "dbus", "expat",
+  "libdrm", "xorg.libX11", "xorg.libXcomposite", "xorg.libXdamage",
+  "xorg.libXext", "xorg.libXfixes", "xorg.libXrandr",
+  "mesa", "gtk3", "pango", "cairo", "alsa-lib",
+]
+
+[phases.build]
+cmds = [
+  "pip install -r requirements.txt",
+  "playwright install chromium",
+]
