@@ -7,6 +7,7 @@ import os
 import re
 import json
 import time
+import secrets
 import threading
 import logging
 import xml.etree.ElementTree as ET
@@ -20,6 +21,12 @@ from wordmatch import word_to_plate_patterns, plate_to_words, is_english_word, l
 from scraper import search_all_sites, _cf_get, _abs_url, _FAST_SCRAPERS
 from meals import RECIPES, SUPERMARKETS
 from groceries import search_ingredient_prices, STORE_ORDER
+from fb_scanner import (
+    fb_grab_browser_cookies as _fb_grab_cookies,
+    fb_open_login_browser   as _fb_open_browser,
+    fb_scan                 as _fb_scan,
+    DEFAULT_NO_OFFER_PHRASES,
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -37,6 +44,14 @@ CORS(app)
 _cache: dict[str, tuple[list, float]] = {}
 _cache_lock = threading.Lock()
 CACHE_TTL = 600
+
+# FB Marketplace sessions: token -> {cookies, created}
+_fb_sessions: dict = {}
+_fb_sessions_lock = threading.Lock()
+
+# Pending open-browser logins: login_id -> {status, cookies, error}
+_fb_pending: dict = {}
+_fb_pending_lock = threading.Lock()
 
 
 def _cache_get(key: str) -> list | None:
@@ -169,6 +184,172 @@ def api_ingredient_prices():
         return jsonify({'error': 'Provide ?q=ingredient (max 100 chars)', 'results': []}), 400
     results = search_ingredient_prices(query)
     return jsonify({'results': results, 'stores': STORE_ORDER})
+
+
+# ---------------------------------------------------------------------------
+# FB Marketplace Scanner
+# ---------------------------------------------------------------------------
+
+@app.route('/api/fb-scanner/login', methods=['POST'])
+def api_fb_login():
+    """Grab Facebook cookies from the user's local Firefox profile."""
+    result = _fb_grab_cookies()
+    if not result['success']:
+        return jsonify(result), 401
+
+    token = secrets.token_hex(32)
+    with _fb_sessions_lock:
+        _fb_sessions[token] = {'cookies': result['cookies'], 'created': time.time()}
+
+    resp = jsonify({'success': True})
+    resp.set_cookie('fb_sess', token, httponly=True, samesite='Lax', max_age=86400)
+    return resp
+
+
+@app.route('/api/fb-scanner/login/open-browser', methods=['POST'])
+def api_fb_open_browser():
+    """Launch a visible browser window for manual Facebook login."""
+    login_id = secrets.token_hex(8)
+    with _fb_pending_lock:
+        _fb_pending[login_id] = {'status': 'opening', 'cookies': None, 'error': None}
+    threading.Thread(
+        target=_fb_open_browser,
+        args=(_fb_pending, login_id),
+        daemon=True,
+    ).start()
+    return jsonify({'id': login_id})
+
+
+@app.route('/api/fb-scanner/login/poll')
+def api_fb_login_poll():
+    """Poll whether an open-browser login has completed."""
+    login_id = request.args.get('id', '')
+    with _fb_pending_lock:
+        state = _fb_pending.get(login_id)
+    if not state:
+        return jsonify({'status': 'not_found'}), 404
+
+    if state['status'] == 'success':
+        token = secrets.token_hex(32)
+        with _fb_sessions_lock:
+            _fb_sessions[token] = {'cookies': state['cookies'], 'created': time.time()}
+        with _fb_pending_lock:
+            _fb_pending.pop(login_id, None)
+        resp = jsonify({'status': 'success'})
+        resp.set_cookie('fb_sess', token, httponly=True, samesite='Lax', max_age=86400)
+        return resp
+
+    return jsonify({'status': state['status'], 'error': state.get('error')})
+
+
+@app.route('/api/fb-scanner/logout', methods=['POST'])
+def api_fb_logout():
+    token = request.cookies.get('fb_sess')
+    if token:
+        with _fb_sessions_lock:
+            _fb_sessions.pop(token, None)
+    resp = jsonify({'success': True})
+    resp.delete_cookie('fb_sess')
+    return resp
+
+
+@app.route('/api/fb-scanner/status')
+def api_fb_status():
+    token = request.cookies.get('fb_sess')
+    with _fb_sessions_lock:
+        logged_in = bool(token and token in _fb_sessions)
+    return jsonify({'logged_in': logged_in})
+
+
+@app.route('/api/fb-scanner/scan', methods=['POST'])
+def api_fb_scan_route():
+    token = request.cookies.get('fb_sess')
+    with _fb_sessions_lock:
+        session = _fb_sessions.get(token) if token else None
+    if not session:
+        return jsonify({'success': False, 'error': 'Not connected to Facebook', 'auth': False}), 401
+
+    # Always re-read cookies fresh from Firefox so we never use a stale session.
+    # The fb_sess token just proves the user went through Connect; the actual
+    # Facebook cookies are read live each time to pick up any new cookies Firefox has.
+    fresh = _fb_grab_cookies()
+    if fresh.get('success'):
+        cookies = fresh['cookies']
+        with _fb_sessions_lock:
+            _fb_sessions[token]['cookies'] = cookies
+    else:
+        cookies = session['cookies']
+
+    data = request.get_json(force=True, silent=True) or {}
+
+    def _f(key):
+        try:
+            v = data.get(key)
+            return float(v) if v not in (None, '', 0) else None
+        except (ValueError, TypeError):
+            return None
+
+    try:
+        radius_km = int(data.get('radius_km') or 40)
+    except (ValueError, TypeError):
+        radius_km = 40
+
+    result = _fb_scan(
+        cookies=cookies,
+        query=(data.get('query') or '').strip(),
+        location=(data.get('location') or 'Cheltenham, UK').strip(),
+        radius_km=radius_km,
+        excluded_cities=[c.strip() for c in (data.get('excluded_cities') or []) if c.strip()],
+        min_price=_f('min_price'),
+        max_price=_f('max_price'),
+        condition=data.get('condition', 'any'),
+        no_offer_phrases=data.get('no_offer_phrases') or DEFAULT_NO_OFFER_PHRASES,
+    )
+    return jsonify(result)
+
+
+@app.route('/api/car-finder/scan', methods=['POST'])
+def api_car_finder_scan():
+    """UK-wide car search with automatic spares/non-runner exclusion."""
+    token = request.cookies.get('fb_sess')
+    with _fb_sessions_lock:
+        session = _fb_sessions.get(token) if token else None
+    if not session:
+        return jsonify({'success': False, 'error': 'Not connected to Facebook', 'auth': False}), 401
+
+    # Always re-read fresh cookies
+    fresh = _fb_grab_cookies()
+    if fresh.get('success'):
+        cookies = fresh['cookies']
+        with _fb_sessions_lock:
+            _fb_sessions[token]['cookies'] = cookies
+    else:
+        cookies = session['cookies']
+
+    data = request.get_json(force=True, silent=True) or {}
+
+    def _f(key):
+        try:
+            v = data.get(key)
+            return float(v) if v not in (None, '', 0) else None
+        except (ValueError, TypeError):
+            return None
+
+    query = (data.get('query') or 'supercar').strip()
+
+    result = _fb_scan(
+        cookies=cookies,
+        query=query,
+        location='London, UK',   # UK-wide: London + 500km covers all of GB
+        radius_km=500,
+        excluded_cities=[],
+        min_price=_f('min_price'),
+        max_price=_f('max_price'),
+        condition='used',
+        no_offer_phrases=[],
+        car_mode=True,
+    )
+    return jsonify(result)
 
 
 @app.route('/api/status')

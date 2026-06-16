@@ -852,6 +852,247 @@
     .empty-planner p { font-size: 14px; }
 
     /* ------------------------------------------------------------------ */
+    /* FB SCANNER VIEW                                                      */
+    /* ------------------------------------------------------------------ */
+    #fbScannerView { display: none; }
+    #carFinderView  { display: none; }
+
+    .car-tab {
+      padding: 6px 16px; border-radius: 20px; border: 1px solid var(--border);
+      background: transparent; color: var(--muted); font-size: 12px; font-weight: 700;
+      cursor: pointer; transition: all .15s;
+    }
+    .car-tab.active, .car-tab:hover {
+      background: var(--accent); color: var(--plate-black); border-color: var(--accent);
+    }
+    .make-chip {
+      padding: 4px 12px; border-radius: 14px; border: 1px solid var(--border);
+      background: var(--surface); color: var(--text); font-size: 11px; font-weight: 600;
+      cursor: pointer; transition: all .15s;
+    }
+    .make-chip:hover { border-color: var(--accent); color: var(--accent); }
+
+    .car-type-badge {
+      display: inline-block; font-size: 9px; font-weight: 900; letter-spacing: .6px;
+      text-transform: uppercase; padding: 2px 7px; border-radius: 3px;
+    }
+    .car-type-badge.supercar { background: rgba(224,84,84,.2);  color: #e05454; }
+    .car-type-badge.premium  { background: rgba(245,196,0,.15); color: var(--accent); }
+    .car-type-badge.sports   { background: rgba(76,175,121,.2); color: var(--green); }
+    .car-type-badge.standard { background: rgba(122,122,153,.12); color: var(--muted); }
+
+    .fb-auth-panel { max-width: 420px; margin: 60px auto 0; }
+
+    .fb-auth-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 36px 32px; text-align: center;
+    }
+    .fb-logo {
+      width: 56px; height: 56px; background: #1877F2; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; font-weight: 900; color: #fff; margin: 0 auto 16px;
+      font-family: Georgia, serif;
+    }
+    .fb-auth-card h2 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+    .fb-auth-card > p { font-size: 13px; color: var(--muted); margin-bottom: 24px; line-height: 1.6; }
+    .fb-disclaimer { font-size: 11px; color: var(--muted); margin-top: 16px; line-height: 1.5; }
+
+    .fb-input {
+      width: 100%; background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: 8px; color: var(--text); font-size: 14px;
+      padding: 12px 16px; margin-bottom: 10px; outline: none;
+      transition: border-color .2s;
+    }
+    .fb-input:focus { border-color: var(--accent); }
+    .fb-input.error { border-color: var(--red); }
+
+    .fb-connect-btn {
+      width: 100%; background: #1877F2; border: none; border-radius: 8px;
+      color: #fff; cursor: pointer; font-size: 15px; font-weight: 700;
+      padding: 13px; margin-top: 4px; transition: background .2s;
+    }
+    .fb-connect-btn:hover { background: #166FE5; }
+    .fb-connect-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+    .scanner-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .scanner-header h2 { font-size: 22px; font-weight: 800; }
+
+    .fb-logout-btn {
+      background: none; border: 1px solid var(--border); border-radius: 6px;
+      color: var(--muted); cursor: pointer; font-size: 12px; font-weight: 700;
+      padding: 6px 14px; transition: color .15s, border-color .15s;
+    }
+    .fb-logout-btn:hover { color: var(--red); border-color: var(--red); }
+
+    .scanner-filters {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 24px; margin-bottom: 28px;
+    }
+
+    .filter-section { margin-bottom: 20px; }
+    .filter-section > label, .filter-group > label {
+      display: block; font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--muted); margin-bottom: 6px;
+    }
+
+    .filter-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;
+    }
+    @media (max-width: 600px) { .filter-grid { grid-template-columns: 1fr; } }
+
+    .filter-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+    .filter-group { flex: 1; min-width: 90px; margin-bottom: 0; }
+
+    .scanner-input, .scanner-input-sm {
+      width: 100%; background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: 8px; color: var(--text); font-size: 14px;
+      padding: 11px 14px; outline: none; transition: border-color .2s;
+    }
+    .scanner-input:focus, .scanner-input-sm:focus { border-color: var(--accent); }
+    .scanner-input-sm { font-size: 14px; padding: 10px 12px; }
+
+    .scanner-textarea {
+      width: 100%; background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: 8px; color: var(--text); font-size: 13px;
+      padding: 10px 14px; outline: none; resize: vertical;
+      font-family: inherit; line-height: 1.5; transition: border-color .2s;
+    }
+    .scanner-textarea:focus { border-color: var(--accent); }
+
+    .scanner-select {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text); font-size: 13px;
+      padding: 8px 10px; cursor: pointer; width: 100%;
+    }
+
+    .reset-phrases-btn {
+      background: none; border: 1px solid var(--border); border-radius: 6px;
+      color: var(--muted); cursor: pointer; font-size: 11px; font-weight: 700;
+      padding: 5px 12px; margin-top: 6px; transition: color .15s, border-color .15s;
+    }
+    .reset-phrases-btn:hover { color: var(--text); border-color: var(--text); }
+
+    .scan-btn {
+      background: var(--accent); border: none; border-radius: 8px;
+      color: var(--plate-black); cursor: pointer; font-size: 15px; font-weight: 800;
+      letter-spacing: 1px; padding: 14px 36px; margin-top: 4px;
+      transition: background .2s, transform .1s;
+    }
+    .scan-btn:hover { background: var(--accent-dark); }
+    .scan-btn:active { transform: scale(.97); }
+    .scan-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    #fbStatusBar {
+      border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; font-size: 14px;
+    }
+    #fbStatusBar.loading {
+      background: rgba(245,196,0,.12); border: 1px solid rgba(245,196,0,.3);
+      color: var(--accent); display: flex; align-items: center; gap: 10px;
+    }
+    #fbStatusBar.error {
+      background: rgba(224,84,84,.12); border: 1px solid rgba(224,84,84,.3);
+      color: var(--red); display: block;
+    }
+    #fbStatusBar.info {
+      background: rgba(76,175,121,.12); border: 1px solid rgba(76,175,121,.3);
+      color: var(--green); display: block;
+    }
+
+    #fbResultsMeta {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px; flex-wrap: wrap; gap: 8px;
+    }
+    #fbResultsMeta .count { font-size: 14px; color: var(--muted); }
+    #fbResultsMeta .count strong { color: var(--text); font-size: 18px; }
+
+    .fb-results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .fb-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; overflow: hidden; display: flex; flex-direction: column;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .fb-card:hover {
+      border-color: rgba(245,196,0,.4);
+      box-shadow: 0 4px 20px rgba(0,0,0,.3);
+    }
+
+    .fb-card-thumb {
+      position: relative; width: 100%; aspect-ratio: 4/3;
+      background: var(--bg); overflow: hidden; flex-shrink: 0;
+    }
+    .fb-card-thumb img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    .fb-card-thumb-placeholder {
+      width: 100%; height: 100%; display: flex; align-items: center;
+      justify-content: center; font-size: 36px; color: var(--muted);
+    }
+    .fb-deal-badge {
+      position: absolute; top: 8px; left: 8px;
+      background: rgba(76,175,121,.9); color: #fff;
+      font-size: 10px; font-weight: 800; letter-spacing: .5px;
+      padding: 3px 8px; border-radius: 4px; text-transform: uppercase;
+    }
+    .fb-free-badge {
+      position: absolute; top: 8px; right: 8px;
+      background: rgba(76,175,121,.95); color: #fff;
+      font-size: 11px; font-weight: 900; letter-spacing: .5px;
+      padding: 3px 9px; border-radius: 4px; text-transform: uppercase;
+    }
+    .fb-platform-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: rgba(255,170,0,.12); color: #ffaa00;
+      font-size: 10px; font-weight: 800; letter-spacing: .4px;
+      padding: 2px 7px; border-radius: 4px; text-transform: uppercase;
+      border: 1px solid rgba(255,170,0,.25);
+    }
+
+    .fb-card-body { padding: 12px 14px; flex: 1; display: flex; flex-direction: column; gap: 7px; }
+
+    .fb-card-title {
+      font-size: 13px; font-weight: 700; line-height: 1.35;
+      overflow: hidden; display: -webkit-box;
+      -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    }
+
+    .fb-price-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .fb-price { font-size: 18px; font-weight: 800; color: var(--accent); }
+
+    .offer-badge {
+      font-size: 10px; font-weight: 800; letter-spacing: .5px;
+      border-radius: 4px; padding: 2px 7px; text-transform: uppercase; white-space: nowrap;
+    }
+    .offer-badge.firm       { background: rgba(224,84,84,.15);  color: var(--red);   }
+    .offer-badge.negotiable { background: rgba(76,175,121,.15); color: var(--green); }
+    .offer-badge.unknown    { background: rgba(122,122,153,.15); color: var(--muted); }
+
+    .fb-desc-prices {
+      font-size: 11px; color: var(--green); font-weight: 600;
+    }
+
+    .fb-card-meta {
+      font-size: 11px; color: var(--muted);
+      display: flex; gap: 10px; flex-wrap: wrap;
+    }
+
+    .fb-view-btn {
+      display: block; background: transparent; border: none;
+      border-top: 1px solid var(--border); color: var(--text);
+      font-size: 13px; font-weight: 700; padding: 10px 14px;
+      text-align: center; text-decoration: none;
+      transition: background .15s, color .15s; cursor: pointer;
+    }
+    .fb-view-btn:hover { background: rgba(245,196,0,.08); color: var(--accent); }
+
+    /* ------------------------------------------------------------------ */
     /* Footer                                                               */
     /* ------------------------------------------------------------------ */
     footer {
@@ -880,6 +1121,8 @@
     <button class="nav-btn" id="navNews">News</button>
     <button class="nav-btn" id="navFriends">Friends</button>
     <button class="nav-btn" id="navMealPlanner" style="display:none">Plate Planner</button>
+    <button class="nav-btn" id="navFbScanner" style="display:none">FB Scanner</button>
+    <button class="nav-btn" id="navCarFinder" style="display:none">Car Finder</button>
   </nav>
 </header>
 
@@ -1006,7 +1249,7 @@
   <div class="modal">
     <button class="modal-close" id="loginModalClose">✕</button>
     <h2>Sign In</h2>
-    <p>Enter your password to access the Plate Planner.</p>
+    <p>Enter your password to access the Plate Planner and FB Scanner.</p>
     <input class="modal-input" id="loginPasswordInput" type="password"
       placeholder="••••••" maxlength="20" autocomplete="current-password" />
     <div class="modal-error" id="loginError">Incorrect password. Try again.</div>
@@ -1103,12 +1346,206 @@
   </main>
 </div>
 
+<!-- ================================================================== -->
+<!-- FB SCANNER VIEW                                                       -->
+<!-- ================================================================== -->
+<div id="fbScannerView">
+  <main class="page-main">
+
+    <div id="fbStatusBar" style="display:none"></div>
+
+    <!-- ── Not connected ── -->
+    <div id="fbAuthPanel">
+      <div class="fb-auth-panel">
+        <div class="fb-auth-card">
+          <div class="fb-logo">f</div>
+          <h2>Connect Facebook</h2>
+          <p>Choose how to connect your Facebook account to start scanning Marketplace.</p>
+
+          <button class="fb-connect-btn" id="fbGrabCookiesBtn">
+            &#127919; Import from Firefox (instant)
+          </button>
+          <p style="font-size:12px;color:var(--muted);margin:6px 0 16px">
+            Already logged into Facebook in Firefox? This grabs your session instantly — no password needed.
+          </p>
+
+          <div style="border-top:1px solid var(--border);padding-top:16px;margin-top:4px">
+            <button class="fb-connect-btn" id="fbOpenBrowserBtn" style="background:#444;margin-bottom:6px">
+              &#128274; Open Login Browser
+            </button>
+            <p style="font-size:12px;color:var(--muted);margin:0">
+              Opens a browser window — log in there, then return here. Handles 2FA automatically.
+            </p>
+          </div>
+
+          <p class="fb-disclaimer">Session cookies are held in server memory only and cleared when you disconnect.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Connected: scanner ── -->
+    <div id="fbScanPanel" style="display:none">
+
+      <div class="scanner-header">
+        <h2>FB Marketplace Scanner</h2>
+        <button class="fb-logout-btn" id="fbDisconnectBtn">Disconnect Facebook</button>
+      </div>
+
+      <div class="scanner-filters">
+
+        <div class="filter-section">
+          <label for="fbQuery">Search keyword</label>
+          <input class="scanner-input" id="fbQuery" type="text" placeholder="e.g. iPhone 14, mountain bike, PS5…" />
+        </div>
+
+        <div class="filter-grid">
+          <div class="filter-group">
+            <label for="fbLocation">Search location</label>
+            <input class="scanner-input" id="fbLocation" type="text" value="Cheltenham, UK" placeholder="e.g. Cheltenham, UK" />
+          </div>
+          <div class="filter-group">
+            <label for="fbRadius">Radius</label>
+            <select class="scanner-select" id="fbRadius" style="height:46px">
+              <option value="10">10 km</option>
+              <option value="25">25 km</option>
+              <option value="40" selected>40 km</option>
+              <option value="65">65 km</option>
+              <option value="100">100 km</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filter-section" style="margin-bottom:20px">
+          <label for="fbExcluded">Exclude results from these cities (one per line)</label>
+          <textarea class="scanner-textarea" id="fbExcluded" rows="3" placeholder="London&#10;Bristol"></textarea>
+        </div>
+
+        <div class="filter-row">
+          <div class="filter-group">
+            <label for="fbMinPrice">Min price (£)</label>
+            <input class="scanner-input-sm" id="fbMinPrice" type="number" min="0" placeholder="0" />
+          </div>
+          <div class="filter-group">
+            <label for="fbMaxPrice">Max price (£)</label>
+            <input class="scanner-input-sm" id="fbMaxPrice" type="number" min="0" placeholder="500" />
+          </div>
+          <div class="filter-group">
+            <label for="fbCondition">Condition</label>
+            <select class="scanner-select" id="fbCondition">
+              <option value="any">Any condition</option>
+              <option value="new">New only</option>
+              <option value="used">Used only</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <label for="fbOfferPhrases">Exclude listings containing these phrases (firm-price indicators — one per line)</label>
+          <textarea class="scanner-textarea" id="fbOfferPhrases" rows="5"></textarea>
+          <button class="reset-phrases-btn" id="fbResetPhrases">Reset to defaults</button>
+        </div>
+
+        <button class="scan-btn" id="fbScanBtn">Scan Marketplace</button>
+
+      </div><!-- /.scanner-filters -->
+
+      <div id="fbResultsMeta" style="display:none">
+        <div class="count"><strong id="fbResultCount">0</strong> listings found</div>
+        <select class="scanner-select" id="fbSortSelect" style="width:auto">
+          <option value="price_asc">Price: low → high</option>
+          <option value="price_desc">Price: high → low</option>
+          <option value="newest">Newest first</option>
+          <option value="deal_score">Best deals first</option>
+        </select>
+      </div>
+
+      <div id="fbResults" class="fb-results-grid"></div>
+
+    </div><!-- /#fbScanPanel -->
+
+  </main>
+</div>
+
+<!-- ================================================================== -->
+<!-- CAR FINDER VIEW                                                      -->
+<!-- ================================================================== -->
+<div id="carFinderView">
+  <main class="container" style="max-width:1100px;margin:0 auto;padding:24px 16px">
+
+    <div style="margin-bottom:20px">
+      <h2 style="font-size:22px;font-weight:800;color:var(--accent);margin-bottom:4px">&#127950; UK Car Finder</h2>
+      <p style="font-size:13px;color:var(--muted)">Searches Facebook Marketplace UK-wide &mdash; spares/non-runners automatically excluded.</p>
+    </div>
+
+    <!-- Connect notice (reuses FB session) -->
+    <div id="carFinderConnect" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:20px;text-align:center">
+      <p style="margin-bottom:12px;color:var(--muted)">Connect Facebook in the <strong>FB Scanner</strong> tab first, then come back here.</p>
+      <button class="scan-btn" onclick="showView('fbscanner');window._fbCheckSession()">Go to FB Scanner &#8594;</button>
+    </div>
+
+    <div id="carFinderPanel">
+      <!-- Car type tabs -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
+        <button class="car-tab active" data-type="all">All Cars</button>
+        <button class="car-tab" data-type="supercar">&#127942; Supercars</button>
+        <button class="car-tab" data-type="premium">&#11088; Premium</button>
+        <button class="car-tab" data-type="sports">&#9889; Sports</button>
+        <button class="car-tab" data-type="standard">Standard</button>
+      </div>
+
+      <!-- Quick make chips -->
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px">
+        <span style="font-size:11px;color:var(--muted);align-self:center;margin-right:4px">Quick search:</span>
+        <button class="make-chip" data-query="Ferrari">Ferrari</button>
+        <button class="make-chip" data-query="Lamborghini">Lamborghini</button>
+        <button class="make-chip" data-query="McLaren">McLaren</button>
+        <button class="make-chip" data-query="Porsche">Porsche</button>
+        <button class="make-chip" data-query="Aston Martin">Aston Martin</button>
+        <button class="make-chip" data-query="Bentley">Bentley</button>
+        <button class="make-chip" data-query="Rolls Royce">Rolls Royce</button>
+        <button class="make-chip" data-query="BMW M3">BMW M3</button>
+        <button class="make-chip" data-query="BMW M4">BMW M4</button>
+        <button class="make-chip" data-query="Mercedes AMG">Mercedes AMG</button>
+        <button class="make-chip" data-query="Nissan GT-R">Nissan GT-R</button>
+        <button class="make-chip" data-query="Toyota Supra">Toyota Supra</button>
+      </div>
+
+      <!-- Search controls -->
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:18px">
+        <div style="flex:1;min-width:180px">
+          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Make / Model</label>
+          <input id="carQuery" type="text" placeholder="e.g. Ferrari 458, BMW M3…" value="supercar"
+                 style="width:100%;padding:9px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px">
+        </div>
+        <div style="min-width:100px">
+          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Min £</label>
+          <input id="carMinPrice" type="number" placeholder="0" min="0"
+                 style="width:100%;padding:9px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px">
+        </div>
+        <div style="min-width:100px">
+          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Max £</label>
+          <input id="carMaxPrice" type="number" placeholder="any" min="0"
+                 style="width:100%;padding:9px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px">
+        </div>
+        <button class="scan-btn" id="carScanBtn" style="white-space:nowrap">&#128269; Search UK</button>
+      </div>
+
+      <div id="carStatus"></div>
+      <div id="carResultsMeta" style="display:none;font-size:12px;color:var(--muted);margin-bottom:12px"></div>
+      <div id="carResults" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px"></div>
+    </div>
+
+  </main>
+</div>
+
 <footer>
   Live data scraped from UK plate dealers &mdash; prices and availability may change. Always verify on the seller's site before purchasing.
 </footer>
 
 <script>
-  const API_BASE = 'https://w0rdpl4t3-production.up.railway.app';
+  const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+    ? `${location.protocol}//${location.hostname}:${location.port || 8080}`
+    : 'https://w0rdpl4t3-production.up.railway.app';
 
   /* ---- elements ---- */
   const logoBtn     = document.getElementById('logoBtn');
@@ -1516,13 +1953,30 @@
   }
 
   /* ------------------------------------------------------------------ */
-  /* Meal planner nav wiring                                              */
+  /* Meal planner + FB Scanner nav wiring                                */
   /* ------------------------------------------------------------------ */
-  const navMealPlanner = document.getElementById('navMealPlanner');
+  const navMealPlanner  = document.getElementById('navMealPlanner');
   const mealPlannerView = document.getElementById('mealPlannerView');
   VIEWS.mealplanner = { el: mealPlannerView, btn: navMealPlanner };
-
   navMealPlanner.addEventListener('click', () => showView('mealplanner'));
+
+  const navFbScanner  = document.getElementById('navFbScanner');
+  const fbScannerView = document.getElementById('fbScannerView');
+  VIEWS.fbscanner = { el: fbScannerView, btn: navFbScanner };
+
+  navFbScanner.addEventListener('click', () => {
+    showView('fbscanner');
+    window._fbCheckSession();
+  });
+
+  const navCarFinder  = document.getElementById('navCarFinder');
+  const carFinderView = document.getElementById('carFinderView');
+  VIEWS.carfinder = { el: carFinderView, btn: navCarFinder };
+
+  navCarFinder.addEventListener('click', () => {
+    showView('carfinder');
+    window._carCheckSession();
+  });
 
   /* ------------------------------------------------------------------ */
   /* Initial state                                                        */
@@ -1559,6 +2013,8 @@
       loginBtn.textContent = 'My Account';
       loginBtn.classList.add('logged-in');
       document.getElementById('navMealPlanner').style.display = '';
+      document.getElementById('navFbScanner').style.display = '';
+      document.getElementById('navCarFinder').style.display = '';
       loadMealPlanner();
       showView('mealplanner');
     } else {
@@ -2656,6 +3112,477 @@ ${recipeLinksHtml}
   window.addEventListener('resize', resize);
   resize();
   requestAnimationFrame(function kickoff(now) { shootAt = now + 6000 + Math.random() * 8000; requestAnimationFrame(draw); });
+})();
+</script>
+
+<script>
+/* =========================================================================
+   FB MARKETPLACE SCANNER
+   ========================================================================= */
+(function () {
+  const DEFAULT_PHRASES = [
+    'no offers', 'no offer', 'not accepting offers',
+    'fixed price', 'firm price', 'price is firm',
+    'no time wasters', 'no low offers', 'no silly offers',
+    'asking price is final', 'price not negotiable',
+    'not negotiable', 'no haggling', 'price firm',
+    'offers not accepted', 'strict price',
+    "won't accept offers", 'will not accept offers', 'no negotiations',
+  ];
+
+  const fbAuthPanel      = document.getElementById('fbAuthPanel');
+  const fbScanPanel      = document.getElementById('fbScanPanel');
+  const fbGrabCookiesBtn = document.getElementById('fbGrabCookiesBtn');
+  const fbOpenBrowserBtn = document.getElementById('fbOpenBrowserBtn');
+  const fbDisconnectBtn  = document.getElementById('fbDisconnectBtn');
+  const fbStatusBar      = document.getElementById('fbStatusBar');
+  const fbQuery          = document.getElementById('fbQuery');
+  const fbLocation       = document.getElementById('fbLocation');
+  const fbRadius         = document.getElementById('fbRadius');
+  const fbExcluded       = document.getElementById('fbExcluded');
+  const fbMinPrice       = document.getElementById('fbMinPrice');
+  const fbMaxPrice       = document.getElementById('fbMaxPrice');
+  const fbCondition      = document.getElementById('fbCondition');
+  const fbOfferPhrases   = document.getElementById('fbOfferPhrases');
+  const fbResetPhrases   = document.getElementById('fbResetPhrases');
+  const fbScanBtn        = document.getElementById('fbScanBtn');
+  const fbResultsMeta    = document.getElementById('fbResultsMeta');
+  const fbResultCount    = document.getElementById('fbResultCount');
+  const fbSortSelect     = document.getElementById('fbSortSelect');
+  const fbResultsDiv     = document.getElementById('fbResults');
+
+  let fbRawResults  = [];
+  let _pollTimer    = null;
+
+  fbOfferPhrases.value = DEFAULT_PHRASES.join('\n');
+  fbResetPhrases.addEventListener('click', () => { fbOfferPhrases.value = DEFAULT_PHRASES.join('\n'); });
+
+  /* ── Status helpers ── */
+  function fbSetStatus(type, html) {
+    fbStatusBar.className = type;
+    fbStatusBar.innerHTML = html;
+    fbStatusBar.style.display = '';
+  }
+  function fbClearStatus() { fbStatusBar.style.display = 'none'; }
+
+  /* ── Panel toggling ── */
+  function showPanel(connected) {
+    fbAuthPanel.style.display = connected ? 'none' : '';
+    fbScanPanel.style.display = connected ? ''     : 'none';
+  }
+
+  /* ── Check existing session on first visit ── */
+  window._fbCheckSession = async function () {
+    try {
+      const res  = await fetch(`${API_BASE}/api/fb-scanner/status`, { credentials: 'include' });
+      const data = await res.json();
+      showPanel(data.logged_in);
+    } catch { showPanel(false); }
+  };
+
+  /* ── Option 1: grab from Firefox ── */
+  fbGrabCookiesBtn.addEventListener('click', async () => {
+    fbGrabCookiesBtn.disabled = true;
+    fbGrabCookiesBtn.textContent = 'Importing…';
+    fbSetStatus('loading', '<div class="spinner"></div><span>Reading Facebook session from Firefox…</span>');
+    try {
+      const res  = await fetch(`${API_BASE}/api/fb-scanner/login`, { method: 'POST', credentials: 'include' });
+      const data = await res.json();
+      if (data.success) {
+        fbClearStatus();
+        showPanel(true);
+      } else {
+        fbSetStatus('error', '&#9888; ' + esc(data.error || 'Could not read cookies'));
+      }
+    } catch {
+      fbSetStatus('error', '&#9888; Network error — is the server running?');
+    } finally {
+      fbGrabCookiesBtn.disabled = false;
+      fbGrabCookiesBtn.innerHTML = '&#127919; Import from Firefox (instant)';
+    }
+  });
+
+  /* ── Option 2: open visible browser ── */
+  fbOpenBrowserBtn.addEventListener('click', async () => {
+    fbOpenBrowserBtn.disabled = true;
+    fbOpenBrowserBtn.textContent = 'Opening browser…';
+    fbSetStatus('loading', '<div class="spinner"></div><span>A browser window is opening — log into Facebook there, then return here…</span>');
+    try {
+      const res  = await fetch(`${API_BASE}/api/fb-scanner/login/open-browser`, { method: 'POST', credentials: 'include' });
+      const data = await res.json();
+      if (data.id) _startPolling(data.id);
+      else fbSetStatus('error', '&#9888; Could not open browser');
+    } catch {
+      fbSetStatus('error', '&#9888; Network error');
+      fbOpenBrowserBtn.disabled = false;
+      fbOpenBrowserBtn.innerHTML = '&#128274; Open Login Browser';
+    }
+  });
+
+  function _startPolling(loginId) {
+    if (_pollTimer) clearInterval(_pollTimer);
+    _pollTimer = setInterval(async () => {
+      try {
+        const res  = await fetch(`${API_BASE}/api/fb-scanner/login/poll?id=${loginId}`, { credentials: 'include' });
+        const data = await res.json();
+        if (data.status === 'success') {
+          clearInterval(_pollTimer); _pollTimer = null;
+          fbClearStatus();
+          fbOpenBrowserBtn.disabled = false;
+          fbOpenBrowserBtn.innerHTML = '&#128274; Open Login Browser';
+          showPanel(true);
+        } else if (data.status === 'error') {
+          clearInterval(_pollTimer); _pollTimer = null;
+          fbSetStatus('error', '&#9888; ' + esc(data.error || 'Browser login failed'));
+          fbOpenBrowserBtn.disabled = false;
+          fbOpenBrowserBtn.innerHTML = '&#128274; Open Login Browser';
+        }
+      } catch { /* keep polling */ }
+    }, 2000);
+  }
+
+  /* ── Disconnect ── */
+  fbDisconnectBtn.addEventListener('click', async () => {
+    try { await fetch(`${API_BASE}/api/fb-scanner/logout`, { method: 'POST', credentials: 'include' }); } catch {}
+    showPanel(false);
+    fbResultsDiv.innerHTML = '';
+    fbResultsMeta.style.display = 'none';
+    fbClearStatus();
+    fbRawResults = [];
+  });
+
+  /* ── Scan ── */
+  fbScanBtn.addEventListener('click', doScan);
+  fbQuery.addEventListener('keydown', e => { if (e.key === 'Enter') doScan(); });
+
+  async function doScan() {
+    const query = fbQuery.value.trim();
+    if (!query) { fbQuery.focus(); return; }
+
+    const phrases  = fbOfferPhrases.value.split('\n').map(p => p.trim()).filter(Boolean);
+    const excluded = fbExcluded.value.split('\n').map(c => c.trim()).filter(Boolean);
+    const location = fbLocation.value.trim() || 'Cheltenham, UK';
+    const radiusKm = parseInt(fbRadius.value) || 40;
+    const minP = fbMinPrice.value ? parseFloat(fbMinPrice.value) : null;
+    const maxP = fbMaxPrice.value ? parseFloat(fbMaxPrice.value) : null;
+
+    const payload = {
+      query, location, radius_km: radiusKm,
+      excluded_cities: excluded,
+      min_price: minP, max_price: maxP,
+      condition: fbCondition.value, no_offer_phrases: phrases,
+    };
+    console.group('[FB Scanner] Scan started');
+    console.log('Request payload:', payload);
+
+    fbScanBtn.disabled = true;
+    fbResultsDiv.innerHTML = '';
+    fbResultsMeta.style.display = 'none';
+    fbRawResults = [];
+    fbSetStatus('loading', `<div class="spinner"></div><span>Scanning Facebook Marketplace near ${esc(location)} (${radiusKm}km radius)…</span>`);
+
+    try {
+      const res = await fetch(`${API_BASE}/api/fb-scanner/scan`, {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      console.log('Raw response:', data);
+
+      if (res.status === 401) {
+        console.warn('[FB Scanner] 401 — session expired');
+        showPanel(false);
+        fbSetStatus('error', '&#9888; Session expired — please reconnect Facebook');
+        return;
+      }
+      if (!data.success) {
+        console.error('[FB Scanner] Scan failed:', data.error);
+        fbSetStatus('error', '&#9888; ' + esc(data.error || 'Scan failed'));
+        return;
+      }
+
+      // Debug info from server side
+      if (data.debug_info) {
+        const d = data.debug_info;
+        console.group('[FB Scanner] Server-side debug');
+        console.log('Cookies loaded:', d.cookie_count, '| c_user present:', d.has_c_user);
+        console.log('Geolocation used:', d.geolocation);
+        console.log('URL navigated to:', d.url_requested);
+        console.log('URL resolved to:', d.url_resolved);
+        console.log('Location button BEFORE:', d.location_before);
+        console.log('Location typed in dialog:', d.location_typed);
+        console.log('Autocomplete suggestions:', d.suggestions);
+        console.log('Suggestion selected:', d.suggestion_selected);
+        console.log('Location button AFTER:', d.location_after);
+        console.groupEnd();
+      }
+
+      fbRawResults = data.results || [];
+      const activeLoc = data.active_location || '';
+      const locDisplay = activeLoc.replace(/^location:\s*/i, '').trim();
+
+      // Log where the results actually come from
+      const locationCounts = {};
+      fbRawResults.forEach(r => {
+        const loc = (r.location || 'unknown').toLowerCase();
+        locationCounts[loc] = (locationCounts[loc] || 0) + 1;
+      });
+      console.log('[FB Scanner] Active location (aria-label):', activeLoc || '(empty)');
+      console.log('[FB Scanner] Result locations breakdown:', locationCounts);
+      console.log('[FB Scanner] Total results:', fbRawResults.length);
+
+      if (!fbRawResults.length) {
+        const locNote = locDisplay ? ` (Facebook location: ${esc(locDisplay)})` : '';
+        fbSetStatus('info', `&#10003; Scan complete — no listings found.${locNote}`);
+        return;
+      }
+      const locBadge = locDisplay
+        ? `<span style="margin-left:10px;font-size:12px;color:#555">&#128205; ${esc(locDisplay)}</span>`
+        : '';
+      fbSetStatus('info', `&#10003; ${fbRawResults.length} listings found${locBadge}`);
+      renderFbResults();
+    } catch(err) {
+      console.error('[FB Scanner] Network error:', err);
+      fbSetStatus('error', '&#9888; Network error during scan');
+    } finally {
+      fbScanBtn.disabled = false;
+      console.groupEnd();
+    }
+  }
+
+  fbSortSelect.addEventListener('change', () => renderFbResults());
+
+  /* ── Render results ── */
+  function renderFbResults() {
+    const sort   = fbSortSelect.value;
+    const sorted = [...fbRawResults].sort((a, b) => {
+      if (sort === 'price_asc')  return (a.price_numeric ?? Infinity)   - (b.price_numeric ?? Infinity);
+      if (sort === 'price_desc') return (b.price_numeric ?? -Infinity)  - (a.price_numeric ?? -Infinity);
+      if (sort === 'deal_score') {
+        const ag = a.price_gap_flag ? 0 : 1, bg = b.price_gap_flag ? 0 : 1;
+        if (ag !== bg) return ag - bg;
+        return (a.price_numeric ?? Infinity) - (b.price_numeric ?? Infinity);
+      }
+      return 0; // 'newest' — preserve FB order
+    });
+
+    fbResultCount.textContent  = sorted.length;
+    fbResultsMeta.style.display = 'flex';
+    fbResultsDiv.innerHTML = sorted.map(buildFbCard).join('');
+  }
+
+  function buildFbCard(r) {
+    const imgHtml = r.image
+      ? `<img src="${esc(r.image)}" alt="${esc(r.title || '')}" loading="lazy"
+              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+        + `<div class="fb-card-thumb-placeholder" style="display:none">&#128230;</div>`
+      : `<div class="fb-card-thumb-placeholder">&#128230;</div>`;
+
+    const dealBadge     = r.price_gap_flag
+      ? `<div class="fb-deal-badge">&#128176; Deal hint</div>` : '';
+    const freeBadge     = r.is_free
+      ? `<div class="fb-free-badge">FREE</div>` : '';
+
+    const offerCls   = r.offer_status || 'unknown';
+    const offerLabel = offerCls === 'firm' ? 'Firm Price' : offerCls === 'negotiable' ? 'Negotiable' : 'Unknown';
+
+    const platformBadge = r.platform_redirect
+      ? `<span class="fb-platform-badge">&#128242; Off-platform</span>` : '';
+
+    const descPrices = (r.desc_prices || []).length
+      ? `<div class="fb-desc-prices">Desc mentions: ${r.desc_prices.map(p => '&#163;' + p.toLocaleString('en-GB')).join(', ')}</div>`
+      : '';
+
+    const meta = [
+      r.location ? `<span>&#128205; ${esc(r.location)}</span>` : '',
+      r.listed   ? `<span>&#128336; ${esc(r.listed)}</span>`   : '',
+    ].filter(Boolean).join('');
+
+    return `<div class="fb-card">
+      <div class="fb-card-thumb">${imgHtml}${dealBadge}${freeBadge}</div>
+      <div class="fb-card-body">
+        <div class="fb-card-title">${esc(r.title || 'Untitled listing')}</div>
+        <div class="fb-price-row">
+          <span class="fb-price">${esc(r.price || 'POA')}</span>
+          <span class="offer-badge ${offerCls}">${offerLabel}</span>
+          ${platformBadge}
+        </div>
+        ${descPrices}
+        ${meta ? `<div class="fb-card-meta">${meta}</div>` : ''}
+      </div>
+      <a class="fb-view-btn" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">View on Facebook &#8594;</a>
+    </div>`;
+  }
+})();
+</script>
+
+<script>
+/* =========================================================================
+   CAR FINDER
+   ========================================================================= */
+(() => {
+  const carFinderConnect = document.getElementById('carFinderConnect');
+  const carFinderPanel   = document.getElementById('carFinderPanel');
+  const carScanBtn       = document.getElementById('carScanBtn');
+  const carQuery         = document.getElementById('carQuery');
+  const carMinPrice      = document.getElementById('carMinPrice');
+  const carMaxPrice      = document.getElementById('carMaxPrice');
+  const carStatus        = document.getElementById('carStatus');
+  const carResultsMeta   = document.getElementById('carResultsMeta');
+  const carResults       = document.getElementById('carResults');
+
+  let carAllResults = [];
+  let activeCarType = 'all';
+
+  function esc(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function carSetStatus(type, html) {
+    carStatus.innerHTML = `<div class="status-msg ${type}">${html}</div>`;
+  }
+
+  // ── Session check (reuses FB session) ──
+  window._carCheckSession = async function() {
+    try {
+      const res  = await fetch(`${API_BASE}/api/fb-scanner/status`, { credentials: 'include' });
+      const data = await res.json();
+      if (data.logged_in) {
+        carFinderConnect.style.display = 'none';
+        carFinderPanel.style.display   = '';
+      } else {
+        carFinderConnect.style.display = '';
+        carFinderPanel.style.display   = 'none';
+      }
+    } catch { /* server down */ }
+  };
+
+  // ── Car type tabs ──
+  document.querySelectorAll('.car-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.car-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeCarType = btn.dataset.type;
+      renderCars();
+    });
+  });
+
+  // ── Make chips ──
+  document.querySelectorAll('.make-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      carQuery.value = chip.dataset.query;
+      doCarScan();
+    });
+  });
+
+  carScanBtn.addEventListener('click', doCarScan);
+  carQuery.addEventListener('keydown', e => { if (e.key === 'Enter') doCarScan(); });
+
+  async function doCarScan() {
+    const query = carQuery.value.trim() || 'supercar';
+    const minP  = carMinPrice.value  ? parseFloat(carMinPrice.value)  : null;
+    const maxP  = carMaxPrice.value  ? parseFloat(carMaxPrice.value)  : null;
+
+    carScanBtn.disabled = true;
+    carResults.innerHTML = '';
+    carResultsMeta.style.display = 'none';
+    carAllResults = [];
+    carSetStatus('loading', `<div class="spinner"></div><span>Scanning UK Facebook Marketplace for <strong>${esc(query)}</strong>…</span>`);
+
+    try {
+      const res  = await fetch(`${API_BASE}/api/car-finder/scan`, {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, min_price: minP, max_price: maxP }),
+      });
+      const data = await res.json();
+
+      if (res.status === 401) {
+        carFinderConnect.style.display = '';
+        carFinderPanel.style.display   = 'none';
+        carSetStatus('error', '&#9888; Session expired — reconnect in FB Scanner tab');
+        return;
+      }
+      if (!data.success) {
+        carSetStatus('error', '&#9888; ' + esc(data.error || 'Scan failed'));
+        return;
+      }
+
+      carAllResults = data.results || [];
+      const counts = { supercar:0, premium:0, sports:0, standard:0 };
+      carAllResults.forEach(r => { if (r.car_type) counts[r.car_type] = (counts[r.car_type]||0)+1; });
+
+      // Update tab labels with counts
+      document.querySelectorAll('.car-tab').forEach(btn => {
+        const t = btn.dataset.type;
+        if (t === 'all') btn.textContent = `All Cars (${carAllResults.length})`;
+        else if (counts[t] !== undefined) btn.textContent = btn.textContent.replace(/\s*\(\d+\)/, '') + ` (${counts[t]})`;
+      });
+
+      carSetStatus('info', `&#10003; ${carAllResults.length} listings found across the UK`);
+      renderCars();
+    } catch(err) {
+      carSetStatus('error', '&#9888; Network error — is the server running?');
+    } finally {
+      carScanBtn.disabled = false;
+    }
+  }
+
+  function renderCars() {
+    const filtered = activeCarType === 'all'
+      ? carAllResults
+      : carAllResults.filter(r => r.car_type === activeCarType);
+
+    carResultsMeta.style.display = filtered.length ? '' : 'none';
+    carResultsMeta.textContent   = `Showing ${filtered.length} listing${filtered.length !== 1 ? 's' : ''}`;
+
+    if (!filtered.length) {
+      carResults.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:40px 0">No listings in this category.</p>';
+      return;
+    }
+
+    carResults.innerHTML = filtered.map(renderCarCard).join('');
+  }
+
+  function renderCarCard(r) {
+    const imgHtml = r.image
+      ? `<img src="${esc(r.image)}" alt="${esc(r.title||'')}" loading="lazy"
+              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+        + `<div class="fb-card-thumb-placeholder" style="display:none">&#128663;</div>`
+      : `<div class="fb-card-thumb-placeholder">&#128663;</div>`;
+
+    const typeLabel = { supercar:'Supercar', premium:'Premium', sports:'Sports', standard:'Standard' }[r.car_type] || '';
+    const typeBadge = typeLabel
+      ? `<div class="car-type-badge ${r.car_type}">${typeLabel}</div>` : '';
+
+    const freeBadge     = r.is_free ? `<div class="fb-free-badge">FREE</div>` : '';
+    const platformBadge = r.platform_redirect
+      ? `<span class="fb-platform-badge">&#128242; Off-platform</span>` : '';
+
+    const makeLabel = r.car_make ? `<span style="font-size:10px;color:var(--accent);font-weight:800;text-transform:uppercase;letter-spacing:.5px">${esc(r.car_make)}</span>` : '';
+
+    const meta = [
+      r.location ? `<span>&#128205; ${esc(r.location)}</span>` : '',
+      r.listed   ? `<span>&#128336; ${esc(r.listed)}</span>`   : '',
+    ].filter(Boolean).join('');
+
+    return `<div class="fb-card">
+      <div class="fb-card-thumb" style="position:relative">${imgHtml}${freeBadge}
+        <div style="position:absolute;top:8px;left:8px">${typeBadge}</div>
+      </div>
+      <div class="fb-card-body">
+        ${makeLabel}
+        <div class="fb-card-title">${esc(r.title || 'Untitled')}</div>
+        <div class="fb-price-row">
+          <span class="fb-price">${esc(r.price || 'POA')}</span>
+          ${platformBadge}
+        </div>
+        ${meta ? `<div class="fb-card-meta">${meta}</div>` : ''}
+      </div>
+      <a class="fb-view-btn" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">View on Facebook &#8594;</a>
+    </div>`;
+  }
 })();
 </script>
 </body>
